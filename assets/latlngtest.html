@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Leaflet Map</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <!-- <script src="./bundle.js"></script> -->
+    <!-- <script src="https://cdn.jsdelivr.net/gh/ZarmDev/transitHelper@latest/dist/bundle.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/gh/ZarmDev/transitHelper/dist/bundle.js"></script>
+    <script src="./out.js"></script>
+</head>
+
+<body>
+    <p id="testing">Testing</p>
+    <script>
+        const testing = document.getElementById('testing')
+        let stopData = outputMBusStops().split('\n')
+        let stopCoordinates = [];
+        let stopNames = [];
+        function getNearbyBusStops(coords) {
+            let stops = [];
+            // TODO: Maybe skip stops we have already seen to save performane because MTA provides mutliple of the same stops with almost the same coordinates
+            if (stopData.length != 0) {
+                let precision = 6;
+                // keep it in the memory to save performance
+                if (stopCoordinates.length == 0) {
+                    for (var i = 0; i < stopData.length; i++) {
+                        let split = stopData[i].split(',')
+                        let latlng = [split[3], split[4]]
+                        let stopname = split[1]
+                        // .map((coord) => parseFloat(coord).toFixed(precision))
+                        stopCoordinates.push(latlng)
+                        stopNames.push(stopname)
+                    }
+                    // for (var i = 0; i < stopCoordinates.length; i++) {
+                    //     console.log(stopCoordinates[i], stopData[i].split(','))
+                    // }
+                    // console.log('----------------------------------')
+                }
+                let roundedCoords = [coords["latitude"], coords["longitude"]]
+                // .map((i) => parseFloat(i.toFixed(precision)));
+                for (var i = 0; i < stopCoordinates.length; i++) {
+                    let currCoordindates = stopCoordinates[i];
+                    console.log(currCoordindates)
+                    // let latSame = stopCoordinates[i][0] == roundedCoords[0];
+                    // let longSame = stopCoordinates[i][1] == roundedCoords[1];
+                    let acceptableDifference = 0.004;
+                    // if the latitude/longitude is close enough by the acceptableDifference (plus or minus range)
+                    console.log(`${parseFloat(currCoordindates[0])} - ${acceptableDifference}`)
+                    let latMinus = (parseFloat(currCoordindates[0]) - acceptableDifference);
+                    console.log(`hmmm ${latMinus}`)
+                    let latPlus = (parseFloat(currCoordindates[0]) + acceptableDifference);
+                    let longMinus = (parseFloat(currCoordindates[1]) - acceptableDifference);
+                    let longPlus = (parseFloat(currCoordindates[1]) + acceptableDifference);
+                    // multiply each side by 100000 or something and maybe the comparisons will work?
+                    let inRangeLat = (latMinus <= roundedCoords[0]) && (latPlus >= roundedCoords[0])
+                    let inRangeLong = (longMinus <= roundedCoords[1]) && (longPlus >= roundedCoords[1])
+                    console.log(stopData[i].split(',')[1])
+                    console.log(`${latMinus} <= ${roundedCoords[0]} && ${latPlus} >= ${roundedCoords[0]}`)
+                    console.log(`${longMinus} <= ${roundedCoords[1]} && ${longPlus} >= ${roundedCoords[1]}`)
+                    console.log(inRangeLat, inRangeLong)
+                    // if ((latSame && longSame)) {
+                    if (inRangeLat && inRangeLong) {
+                        let stopname = stopNames[i]
+                        stops.push(stopname)
+                    }
+                }
+                console.log(stops)
+                return stops
+            }
+            return `Failed ${stopData.length != 0} ${stopCoordinates.length == 0}`
+        }
+        function getNearbyStops(coords) {
+            let stops = [];
+            // TODO: Maybe skip stops we have already seen to save performane because MTA provides mutliple of the same stops with almost the same coordinates
+            if (stopData.length != 0) {
+                let precision = 6;
+                // keep it in the memory to save performance
+                if (stopCoordinates.length == 0) {
+                    for (var i = 1; i < stopData.length; i++) {
+                        let split = stopData[i].split(',')
+                        let latlng = [split[2], split[3]].map((coord) => parseFloat(coord).toFixed(precision))
+                        stopCoordinates.push(latlng)
+                    }
+                }
+                let roundedCoords = [coords["latitude"], coords["longitude"]].map((i) => parseFloat(i.toFixed(precision)));
+                for (var i = 0; i < stopCoordinates.length; i++) {
+                    let currCoordindates = stopCoordinates[i];
+                    // let latSame = stopCoordinates[i][0] == roundedCoords[0];
+                    // let longSame = stopCoordinates[i][1] == roundedCoords[1];
+                    let acceptableDifference = 0.1;
+                    console.log(currCoordindates)
+                    // if the latitude/longitude is close enough by the acceptableDifference (plus or minus range)
+                    let latMinus = (Number(currCoordindates[0]) - acceptableDifference);
+                    let latPlus = (Number(currCoordindates[0]) + acceptableDifference);
+                    let longMinus = (Number(currCoordindates[1]) - acceptableDifference);
+                    let longPlus = (Number(currCoordindates[1]) + acceptableDifference);
+                    // multiply each side by 100000 or something and maybe the comparisons will work?
+                    let inRangeLat = (latMinus <= roundedCoords[0]) && (latPlus >= roundedCoords[0])
+                    let inRangeLong = (longMinus <= roundedCoords[1]) && (longPlus >= roundedCoords[1])
+                    console.log(stopData[i].split(',')[1])
+                    console.log(`${latMinus} <= ${roundedCoords[1]} && ${latPlus} >= ${roundedCoords[1]}`)
+                    console.log(`${longMinus} <= ${roundedCoords[1]} && ${longPlus} >= ${roundedCoords[1]}`)
+                    console.log(inRangeLat, inRangeLong)
+                    // if ((latSame && longSame)) {
+                    if (inRangeLat && inRangeLong) {
+                        let stopname = stopData[i].split(',')[1]
+                        stops.push(stopname)
+                    }
+                }
+                console.log(stops)
+                return stops
+            }
+            return `Failed ${stopData.length != 0} ${stopCoordinates.length == 0}`
+        }
+        // 14st union square as an example
+        getNearbyBusStops({ "latitude": 40.735470, "longitude": -73.9910 })
+    </script>
+</body>
+
+</html>

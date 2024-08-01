@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Leaflet Map</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="./bundle.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/gh/ZarmDev/transitHelper@latest/dist/bundle.js"></script> -->
+    <script src="./out.js"></script>
+</head>
+
+<body>
+    <div style="height: 100vh;" id="map"></div>
+    <script>
+        // https://stackoverflow.com/questions/37642481/how-to-draw-a-path-between-two-nodes-using-leaflet
+        // 3. 
+        var latlngs = [];
+        function getTrainLineColor(line) {
+            let color = "";
+            // S is wierdly missing in shapes.txt...
+            if (["A", "C", "E"].includes(line)) {
+                color = "#0039A6"
+            } else if (["B", "D", "F", "M"].includes(line)) {
+                color = "#FF6319"
+            } else if (["G"].includes(line)) {
+                color = "#6CBE45"
+            } else if (["J", "Z"].includes(line)) {
+                color = "#996633"
+            } else if (["N", "Q", "R", "W"].includes(line)) {
+                color = "#FCCC0A"
+            } else if (["L"].includes(line)) {
+                color = "#A7A9AC"
+            } else if (["1", "2", "3"].includes(line)) {
+                color = "#EE352E"
+            } else if (["4", "5", "6"].includes(line)) {
+                color = "#00933C"
+            } else if (["7"].includes(line)) {
+                color = "#B933AD"
+            } else if (["SI"].includes(line)) {
+                // not official color, just added it quickly
+                color = "#2A9FDD"
+            }
+            //  else if (["GS"].includes(line)) {
+            //     // GS IS THE S LINE?!? bro what
+            //     color = "#808183"
+            // }
+            // if (color == "") {
+            //     console.log(line)
+            // }
+            return color
+        }
+        // async function getTrainLineShapes2(data) {
+        //     var trainLines = {};
+        //     var splitByLine = data.split('\n');
+        //     var sequence = -1;
+        //     var last = ""
+        //     // cut off last line because it's empty
+        //     for (var i = 1; i < splitByLine.length - 1; i++) {
+        //         const splitByComma = splitByLine[i].split(',')
+        //         // var splitByComma2 = splitByLine[i + 1].split(',')
+        //         // shape_id: 1..N03R
+        //         const trainLine = splitByComma[0].slice(0, splitByComma[0].indexOf('.'))
+        //         if (!trainLines[trainLine]) {
+        //             sequence = -1;
+        //             trainLines[trainLine] = { "color": "black", "layers": [] };
+        //             trainLines[trainLine]["color"] = getTrainLineColor(trainLine);
+        //         }
+        //         if (splitByComma[1] == "0") {
+        //             sequence += 1;
+        //             trainLines[trainLine]["layers"].push([])
+        //         }
+        //         try {
+        //             trainLines[trainLine]["layers"][sequence].push(
+        //                 [parseFloat(splitByComma[2]), parseFloat(splitByComma[3])]
+        //             )
+        //         } catch {
+
+        //         }
+        //         // trainLines.push(
+        //         //     [parseFloat(splitByComma2[2]), parseFloat(splitByComma2[3])]
+        //         // )
+        //     }
+        //     return trainLines
+        // }
+        async function test() {
+            var trainLineShapes = await getTrainLineShapes(outputShapes());
+            var trainLineCoords = await getAllTrainStopCoordinates(outputStops());
+            var map = L.map('map').setView([40.71427000, -74.00597000], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+                maxZoom: 18,
+            }).addTo(map);
+            console.log(trainLineShapes)
+            for (var i = 0; i < Object.keys(trainLineShapes).length; i++) {
+                // console.log(Object.keys(trainLineShapes)[i])
+                let currObj = Object.values(trainLineShapes)[i]
+                let layers = currObj["layers"];
+                for (var j = 2; j < layers.length; j++) {
+                    let color = currObj["color"]
+                    // console.log(color)
+                    var polyline = L.polyline(layers[j], { color: color, smoothFactor: '7.00' }).addTo(map);
+                    map.addLayer(polyline);
+                    // map.fitBounds(polyline.getBounds());
+                    break
+                }
+                // break
+            }
+            console.log(trainLineCoords, trainLineCoords.length)
+            let tLCVals = Object.values(trainLineCoords)
+            // skip last one because it's null
+            for (var i = 0; i < tLCVals.length -1; i++) {
+                let curr = tLCVals[i];
+                let coords = curr["coordinates"];
+                let latlng = [coords["latitude"], coords["longitude"]]
+                let stopname = curr["stopname"];
+                console.log(latlng, stopname)
+                let marker = L.marker(latlng).addTo(map);
+                marker.bindTooltip(stopname)
+                // var tooltip = L.tooltip().setLatLng(latlng).setContent(stopname).addTo(map);
+            }
+
+            // Add antPath to the map
+            //var path = L.polyline.antPath(
+            //latlngs,
+            //{ "delay": 400, "dashArray": [10, 20], "weight": 5, "color": "black", "paused": true, "reverse": false }
+            //).addTo(map);
+        }
+        test()
+    </script>
+</body>
+
+</html>
