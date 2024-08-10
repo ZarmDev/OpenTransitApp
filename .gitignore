@@ -3,6 +3,8 @@ node_modules/
 dist/
 assets/google_transit
 assets/buses
+assets/svg
+assets/busSvgs
 %ProgramData%
 npm-debug.*
 *.jks
