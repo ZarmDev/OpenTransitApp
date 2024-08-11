@@ -153,7 +153,10 @@ const LeafletMap = () => {
         // inject data into html at var trainLineFunc = await getTrainLineShapes();
         let lineSplit = html.split('\n')
         for (var i = 0; i < lineSplit.length; i++) {
-          if (lineSplit[i].includes('var trainLineShapes')) {
+          if (lineSplit[i].includes('<script src="./bundle.js">')) {
+
+          }
+          else if (lineSplit[i].includes('var trainLineShapes')) {
             let firstP = lineSplit[i].indexOf('(');
             let firstPart = lineSplit[i].slice(0, firstP + 1)
             let secondPart = ');'

@@ -7,10 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script src="./bundle.js"></script>
+    <!-- <script src="./bundle.js"></script> -->
     <!-- <script src="https://cdn.jsdelivr.net/gh/ZarmDev/transitHelper@latest/dist/bundle.js"></script> -->
     <!-- <script src="https://cdn.jsdelivr.net/gh/ZarmDev/transitHelper/dist/bundle.js"></script> -->
-    <script src="./out.js"></script>
+    <!-- <script src="./out.js"></script> -->
+        <script src=""></script>
     <style>
         .custom-icon {
             position: relative;
@@ -35,21 +36,22 @@
         // chambers street example
         let exampleLocation = [40.71427000, -74.00597000]
         var map = L.map('map').setView(exampleLocation, 13);
-        var nearbyBusStopCoords = null;
 
         setInterval(() => {
             ns.innerText = window.nearbyStops
             testing.innerText = window.locationPos
             if (window.locationPos != null) {
-                map.setView(winndow.locationPos, 26);
+                map.setView(window.locationPos, 26);
             }
         }, 1000)
         async function test() {
             var trainLineShapes = await getTrainLineShapes(outputShapes().split('\n'));
             // var trainLineCoords = await getAllTrainStopCoordinates(outputStops());
             let processedTrainStopData = await processTrainStopData(outputTrainStops().split('\n'));
-            let processedBusStopData = await processBusStopData(outputMBusStops().split('\n'));
             var nearbyTrainLineCoords = await getNearbyStops(processedTrainStopData, exampleLocation, 0.004);
+            const latSpan = "0.005";
+            const lonSpan = "0";
+            const nearbyBusStopCoords = await getNearbyBusStops(exampleLocation, latSpan, lonSpan, busInput.value);
             // var nearbyBusStopCoords = await getNearbyStops(processedBusStopData, exampleLocation, 0.004);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
@@ -58,7 +60,7 @@
 
             function renderTrainLineShapes() {
                 // Render train shapes
-                console.log(trainLineShapes)
+                // console.log(trainLineShapes)
                 let TLSKeys = Object.keys(trainLineShapes);
                 let TLSVals = Object.values(trainLineShapes);
                 for (var i = 0; i < TLSKeys.length; i++) {
@@ -108,13 +110,13 @@
                         let iconHTML = '';
                         let filepath = './svg'
                         for (var j = 0; j < splitTrainLines.length; j++) {
-                            iconHTML += '<img src="' + filepath + '/' + splitTrainLines[j] + '.svg"' + 'style="position: absolute; width: 20px; height: 20px; left: ${j * 20}px;">';
+                            iconHTML += '<img src="' + filepath + '/' + splitTrainLines[j] + '.svg"' + ' style="position: absolute; width: 20px; height: 20px; left: ' + j * 20 + 'px;">';
                         }
                         var customIcon = L.divIcon({
                             className: 'custom-icon',
                             // Doing this because if you use a tick backslash it will break it in webviewcontent.js
                             html: [
-                '<div style="position: relative; width: 40px; height: 20px;>',
+                '<div style="position: relative; width: 40px; height: 20px;">',
                     String(iconHTML),
                     '<div style="position: absolute; top: 20px; left: 0; width: 100%; text-align: center; font-size: 12px;">',
                         String(stopname),
@@ -134,7 +136,7 @@
                             // alert(realtime)
                         }.bind(null, stopID, stopname, trainLine));
                     } else {
-                        console.log(stopname)
+                        // console.log(stopname)
                         var busIcon = L.icon({
                             iconUrl: './busSvgs/' + '' + '.svg',
                             iconSize: [0, 0],
@@ -156,11 +158,7 @@
             L.circle(exampleLocation, { radius: 200 }).addTo(map);
         }
 
-        const latSpan = "0.005";
-        const lonSpan = "0";
         busInput.addEventListener('change', async () => {
-            let busApiKey = busInput.value;
-            nearbyBusStopCoords = await getNearbyBusStops(exampleLocation, latSpan, lonSpan, busApiKey);
             test();
         })
     </script>
