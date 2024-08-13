@@ -1,4 +1,4 @@
-# TransitApp
+# OpenTransit
 A transit app for NYC.
 
 It was built for Cider and also to learn React Native.

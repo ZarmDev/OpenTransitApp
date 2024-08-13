@@ -1,12 +1,15 @@
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { Text, View, StyleSheet, Dimensions } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 // import ServiceAlerts from '@/components/ServiceAlerts';
 import * as FileSystem from 'expo-file-system';
 import { unzip } from 'react-native-zip-archive'
 import { WebView } from 'react-native-webview';
-import { html } from '../webviewcontent'
 import * as Location from 'expo-location';
 import { DraggableContainer } from '@/components/DraggableContainer';
+import { useAssets } from 'expo-asset';
+import { bundle } from '../bundleX'
+
+var bundleC = bundle.replace(/\δ/g, '$').replace(/\⒓/g, '{').replace(/\⇎/g, '`')
 
 // ## INTERFACES ##
 // AI + me :)
@@ -80,6 +83,19 @@ const LeafletMap = () => {
   const [downloaded, setDownloaded] = useState(false);
   // AI (<LocationObject | null>(null); <- what???)
   const [location, setLocation] = useState<LocationObject | null>(null);
+  const [htmlFile, err] = useAssets(require('../other/leaflet_map.html'))
+  const [html, setHtml] = useState("no html");
+
+  useEffect(() => {
+    async function test() {
+      if (htmlFile && htmlFile[0].localUri) {
+        await FileSystem.readAsStringAsync(htmlFile[0].localUri).then((data) => {
+          setHtml(data);
+        });
+      }
+    }
+    test()
+  })
 
   const webref = useRef<WebView>(null);
   const uri = FileSystem.cacheDirectory + "google_transit/google_transit.zip";
@@ -131,7 +147,6 @@ const LeafletMap = () => {
 
       const finalFileCount = await countFilesInDirectory(targetPath);
       setHtmlContent(`Final file count: ${finalFileCount}`);
-
       await readCacheDirectory(setEntries); // Ensure readCacheDirectory is awaited if it's async
     } catch (error) {
       console.error('Error during unzipping:', error);
@@ -151,29 +166,30 @@ const LeafletMap = () => {
         // console.log('stops.txt' + data);
         shapeData = data.split('\n');
         // inject data into html at var trainLineFunc = await getTrainLineShapes();
-        let lineSplit = html.split('\n')
-        for (var i = 0; i < lineSplit.length; i++) {
-          if (lineSplit[i].includes('<script src="./bundle.js">')) {
-
+        if (html) {
+          let lineSplit = html.split('\n')
+          for (let i = 0; i < lineSplit.length; i++) {
+            lineSplit[i] = lineSplit[i].replace('■', '\\n');
           }
-          else if (lineSplit[i].includes('var trainLineShapes')) {
-            let firstP = lineSplit[i].indexOf('(');
-            let firstPart = lineSplit[i].slice(0, firstP + 1)
-            let secondPart = ');'
-            // modify the line to have the data injected
-            lineSplit[i] = `${firstPart}\`${data}\`${secondPart}`;
-            console.log(firstPart, secondPart)
-          } else if (lineSplit[i].includes('var trainLineCoords')) {
-            let firstP = lineSplit[i].indexOf('(');
-            let firstPart = lineSplit[i].slice(0, firstP + 1)
-            let secondPart = ');'
-            // modify the line to have the data injected
-            lineSplit[i] = `${firstPart}\`${stopData}\`${secondPart}`;
-            console.log(firstPart, secondPart)
+          for (var i = 0; i < lineSplit.length; i++) {
+            if (lineSplit[i].includes('var trainLineShapes')) {
+              let firstP = lineSplit[i].indexOf('(');
+              let firstPart = lineSplit[i].slice(0, firstP + 1)
+              let secondPart = ');'
+              // modify the line to have the data injected
+              lineSplit[i] = `${firstPart}${JSON.stringify(shapeData)}${secondPart}`;
+              // console.log(firstPart, secondPart)
+            } else if (lineSplit[i].includes('let processedTrainStopData')) {
+              let firstP = lineSplit[i].indexOf('(');
+              let firstPart = lineSplit[i].slice(0, firstP + 1)
+              let secondPart = ');'
+              // modify the line to have the data injected
+              lineSplit[i] = `${firstPart}${JSON.stringify(stopData)}${secondPart}`;
+              // console.log(firstPart, secondPart)
+            }
           }
+          setHtmlContent(lineSplit.join('\n').replace('■', '\n'))
         }
-        // console.log(lineSplit.join('\n'))
-        setHtmlContent(lineSplit.join('\n'))
       })
       .catch((error) => {
         console.log(error);
@@ -205,9 +221,11 @@ const LeafletMap = () => {
 
   useEffect(() => {
     if (downloaded) {
-      main()
+      if (html != 'no html') {
+        main()
+      }
     }
-  }, [downloaded]);
+  }, [downloaded, html]);
 
   async function getLocation() {
     let { status } = await Location.requestForegroundPermissionsAsync();
@@ -226,16 +244,7 @@ const LeafletMap = () => {
 
   // For some reason we should use setInterval this way with async functions. I'm not sure why.
   useEffect(() => {
-    const intervalId = setInterval(async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        // setHtmlContent('Permission to access location was denied');
-        return;
-      }
-
-      let expoLocationData: LocationObject = await Location.getCurrentPositionAsync({});
-      setLocation(expoLocationData)
-    }, 1000);
+    const intervalId = setInterval(getLocation, 1000);
 
     // clear when component un mounts? Not sure
     return () => clearInterval(intervalId);
@@ -253,7 +262,7 @@ const LeafletMap = () => {
         window.locationPos = [${coords["latitude"]}, ${coords["longitude"]}];
         true;
       `;
-      setHtmlContent(run)
+      // setHtmlContent(run)
       if (webref.current) {
         webref.current.injectJavaScript(run);
       }
@@ -281,6 +290,7 @@ export default function HomeScreen() {
       <View style={{ height: mapHeight }}>
         <LeafletMap />
       </View>
+      <Text>This text is totally working</Text>
       <DraggableContainer height={draggableHeight} setHeight={setDraggableHeight}></DraggableContainer>
     </View>
   );
