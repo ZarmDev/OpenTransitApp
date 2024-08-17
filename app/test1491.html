@@ -1,4 +1,4 @@
-<!-- key: ■ = newline -->
+<!-- key: \n = newline -->
 <!DOCTYPE html>
 <html>
 
@@ -48,12 +48,13 @@
             // }
         }, 1000)
         async function test() {
-            var trainLineShapes = await getTrainLineShapes(outputShapes());
+            var trainLineShapes = await getTrainLineShapes(["1..N03R,0,40.702068,-74.013664","1..N03R,1,40.703199,-74.014792","1..N03R,2,40.703226,-74.014820","1..N03R,3,40.703253,-74.014846","1..N03R,4,40.703280,-74.014870","1..N03R,5,40.703307,-74.014893","1..N03R,6,40.703335,-74.014914","1..N03R,7,40.703363,-74.014933","1..N03R,8,40.703391,-74.014952","1..N03R,9,40.703419,-74.014968","1..N03R,10,40.703448,-74.014983","1..N03R,11,40.703477,-74.014997","1..N03R,12,40.703506,-74.015009","1..N03R,13,40.703536,-74.015019","1..N03R,14,40.703566,-74.015028","1..N03R,15,40.703596,-74.015035","1..N03R,16,40.703625,-74.015041","1..N03R,17,40.704168,-74.015122","1..N03R,18,40.704194,-74.015125","1..N03R,19,40.704221,-74.015126","1..N03R,20,40.704247,-74.015127","1..N03R,21,40.704274,-74.015127","1..N03R,22,40.704300,-74.015125","1..N03R,23,40.704327,-74.015123","1..N03R,24,40.704354,-74.015119","1..N03R,25,40.704380,-74.015115","1..N03R,26,40.704407,-74.015109","1..N03R,27,40.704434,-74.015102","1..N03R,28,40.704461,-74.015094","1..N03R,29,40.704487,-74.015086","1..N03R,30,40.704514,-74.015076","1..N03R,31,40.704541,-74.015065","1..N03R,32,40.704568,-74.015052","1..N03R,33,40.705092,-74.014830","1..N03R,34,40.707513,-74.013783","1..N03R,35,40.708242,-74.013471","1..N03R,36,40.710132,-74.012648"]);
             // var trainLineCoords = await getAllTrainStopCoordinates(outputStops());
-            let processedTrainStopData = await processTrainStopData(outputTrainStops());
+            let processedTrainStopData = await processTrainStopData(["101,Van Cortlandt Park-242 St,40.889248,-73.898583,1,,1","101N,Van Cortlandt Park-242 St,40.889248,-73.898583,,101,1","101S,Van Cortlandt Park-242 St,40.889248,-73.898583,,101,1","103,238 St,40.884667,-73.900870,1,,1","103N,238 St,40.884667,-73.900870,,103,1","103S,238 St,40.884667,-73.900870,,103,1","104,231 St,40.878856,-73.904834,1,,1","104N,231 St,40.878856,-73.904834,,104,1","104S,231 St,40.878856,-73.904834,,104,1","106,Marble Hill-225 St,40.874561,-73.909831,1,,1","106N,Marble Hill-225 St,40.874561,-73.909831,,106,1","106S,Marble Hill-225 St,40.874561,-73.909831,,106,1","107,215 St,40.869444,-73.915279,1,,1","107N,215 St,40.869444,-73.915279,,107,1","107S,215 St,40.869444,-73.915279,,107,1","108,207 St,40.864621,-73.918822,1,,1","108N,207 St,40.864621,-73.918822,,108,1","108S,207 St,40.864621,-73.918822,,108,1","109,Dyckman St,40.860531,-73.925536,1,,1"]);
             // const distance = 0.004;
-            const distance = 0.01;
+            const distance = 1;
             var nearbyTrainLineCoords = await getNearbyStops(processedTrainStopData, window.userLocation, distance);
+            console.log(nearbyTrainLineCoords)
             const latSpan = "0.005";
             const lonSpan = "0";
             // const nearbyBusStopCoords = await getNearbyBusStops(exampleLocation, latSpan, lonSpan, busInput.value);
@@ -122,7 +123,7 @@
                         //     '<div style="position: absolute; top: 20px; left: 0; width: 100%; text-align: center; font-size: 12px;">',
                         //         String(stopname),
                         //     '</div>',
-                        // '</div>'].join('■'),
+                        // '</div>'].join('\n'),
                         //             iconSize: [0, 0] // Adjust the size as needed
                         //         });
                         marker = L.marker(latlng).addTo(map);
