@@ -3,7 +3,7 @@
 // NOT USABLE WITH REACT-NATIVE!!! USES fs/promises!
 // This file adds the train line (add maybe bus line in the future) to stops.txt to allow you to get realtime data about that stop
 
-import fs from 'fs/promises'
+// import fs from 'fs/promises'
 
 interface ResultsInterface {
     [stopID: string]: {

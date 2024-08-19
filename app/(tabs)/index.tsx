@@ -30,7 +30,7 @@ interface LocationObject {
 // ## VARIABLES ##
 var shapeData: string[] = [];
 var stopData: string[] = [];
-var roundedStopData: string[][] = [];
+var progress = ''
 
 // thanks AI
 // function distance(lat : Number, long : Number) {
@@ -41,12 +41,13 @@ var roundedStopData: string[][] = [];
 
 const LeafletMap = () => {
   // var htmlContent = assets ? assets : null;
-  const [htmlContent, setHtmlContent] = useState(`<h1>Loading...</h1>`);
+  const [htmlContent, setHtmlContent] = useState(``);
   const [entries, setEntries] = useState([]);
-  const [downloaded, setDownloaded] = useState(false);
+  const [zipDownloaded, setZipDownloaded] = useState(false);
   // AI (<LocationObject | null>(null); <- what???)
-  const [location, setLocation] = useState<LocationObject | null>(null);
-  const [htmlFile, err] = useAssets(require('../other/leaflet_map.html'))
+  // const [location, setLocation] = useState<LocationObject | null>(null);
+  const [htmlFile, err] = useAssets(require('../../assets/leaflet_map.html'))
+  // const [oneT, err2] = useAssets(require('../other/leaflet_map.html'))
   const [html, setHtml] = useState("no html");
   const [reRender, setReRender] = useState("");
   // ????????
@@ -64,27 +65,29 @@ const LeafletMap = () => {
   })
 
   const webref = useRef<WebView>(null);
-  // where we should find the zip folder
+  // where we should find the zip folder and unzip it
   const uri = FileSystem.cacheDirectory + "google_transit/google_transit.zip";
-  // location for unzipped folder
+  // where we an put the unzipped folder
   const targetPath = FileSystem.cacheDirectory + "google_transit/";
 
-  // First thing that runs
+  // First, create a folder called google_transit in the cache and download the zip
+  // Should have a file at cache/google_transit/google_transit.zip
   useEffect(() => {
-    createDirectory(FileSystem.cacheDirectory + "google_transit")
     const zipUrl = "http://web.mta.info/developers/data/nyct/subway/google_transit.zip";
-
-    isFileAsync(uri).then((isFile) => {
+    
+    // Btw, zip files are FILES not directories
+    doesFileExist(uri).then((isFile) => {
       if (isFile) {
-        setHtmlContent("ZIP already downloaded")
+        progress = ("ZIP already downloaded")
         console.log("ZIP file already downloaded");
-        setDownloaded(true);
+        setZipDownloaded(true);
       } else {
-        setHtmlContent("Downloading zip...")
+        progress = ("Downloading zip...")
+        createDirectory(FileSystem.cacheDirectory + "google_transit")
         FileSystem.downloadAsync(zipUrl, uri)
           .then(({ uri }) => {
             console.log("Finished downloading to", uri);
-            setDownloaded(true);
+            setZipDownloaded(true);
           })
           .catch((error) => {
             console.error(error);
@@ -109,36 +112,38 @@ const LeafletMap = () => {
     setEntries(entries);
   }
 
-  async function isFileAsync(uri: any) {
+  async function doesFileExist(uri: any) {
     const result = await FileSystem.getInfoAsync(uri);
     return result.exists && !result.isDirectory;
   }
 
-  async function listDirectoryContents(targetPath: any) {
-    try {
-      const contents = await FileSystem.readDirectoryAsync(targetPath);
-      // console.log('Directory contents:', contents);
-    } catch (error) {
-      // console.error('Error reading directory:', error);
-    }
-  }
-  async function countFilesInDirectory(directory: string): Promise<number> {
-    const files = await FileSystem.readDirectoryAsync(directory);
-    return files.length;
-  }
+  // async function listDirectoryContents(targetPath: any) {
+  //   try {
+  //     const contents = await FileSystem.readDirectoryAsync(targetPath);
+  //     // console.log('Directory contents:', contents);
+  //   } catch (error) {
+  //     // console.error('Error reading directory:', error);
+  //   }
+  // }
+
+  // async function countFilesInDirectory(directory: string): Promise<number> {
+  //   const files = await FileSystem.readDirectoryAsync(directory);
+  //   return files.length;
+  // }
 
   async function unzipFolder() {
-    setHtmlContent('unzipping folder...')
+    progress = ('unzipping folder...')
     try {
       // const initialFileCount = await countFilesInDirectory(targetPath);
-      // setHtmlContent(`Initial file count: ${initialFileCount}`);
+      // progress = (`Initial file count: ${initialFileCount}`);
 
       const path = await unzip(uri, targetPath, "UTF-8");
-      setHtmlContent(`unzip completed at ${path}`);
+      // progress = (`unzip completed at ${path}`);
 
       // const finalFileCount = await countFilesInDirectory(targetPath);
-      // setHtmlContent(`Final file count: ${finalFileCount}`);
+      // progress = (`Final file count: ${finalFileCount}`);
       await readCacheDirectory(setEntries); // Ensure readCacheDirectory is awaited if it's async
+      setZipDownloaded(true)
     } catch (error) {
       console.error('Error during unzipping:', error);
     }
@@ -146,10 +151,10 @@ const LeafletMap = () => {
   }
 
   useEffect(() => {
-    if (!downloaded) {
+    if (!zipDownloaded) {
       unzipFolder()
     }
-  })
+  }, [])
 
   async function main() {
     await FileSystem.readAsStringAsync(targetPath + "/stops.txt")
@@ -157,6 +162,7 @@ const LeafletMap = () => {
         stopData = data.split('\n');
       })
       .catch((error) => {
+        // progress = ('Failed to get stopData')
         console.log(error);
       });
 
@@ -191,6 +197,7 @@ const LeafletMap = () => {
         }
       })
       .catch((error) => {
+        // progress = ('Failed to get shapeData')
         console.log(error);
       });
   }
@@ -198,18 +205,23 @@ const LeafletMap = () => {
   useEffect(() => {
     const loadIcons = async () => {
       const icons = [
-        require('../other/svg/1.svg'),
-        require('../other/svg/2.svg'),
+        require('../../assets/images/svg/1.svg'),
+        require('../../assets/images/svg/2.svg'),
       ];
-
+      // Help from AI! (a lot lol)
       const loadedIcons = await Promise.all(
         icons.map(async (icon) => {
           const asset = Asset.fromModule(icon);
           await asset.downloadAsync();
-          return asset.uri;
+          const fileUri = asset.localUri || asset.uri;
+          const fileContents = await FileSystem.readAsStringAsync(fileUri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          return `data:image/svg+xml;base64,${fileContents}`;
         })
       );
-
+      // progress = JSON.stringify(loadedIcons);
+      progress = "loaded icons"
       setIconUriArr(loadedIcons);
     };
 
@@ -217,23 +229,24 @@ const LeafletMap = () => {
   }, []);
 
   useEffect(() => {
-    // if the webview is ready to render and the folder is downlaoded
-    if (downloaded && html != 'no html') {
+    // if zip downloaded + html ready to render
+    if (zipDownloaded && html != 'no html' && iconUriArr.length != 0) {
+      // progress = (`${zipDownloaded}, ${html}, ${iconUriArr}`)
       main()
     }
-  }, [downloaded, html]);
+  }, [zipDownloaded, html, iconUriArr]);
 
   async function getLocation() {
-    // setHtmlContent("Permission granted?")
+    // progress = ("Permission granted?")
     let { status } = await Location.requestForegroundPermissionsAsync();
-    // setHtmlContent(status)
+    // progress = (status)
     if (status !== 'granted') {
-      // setHtmlContent('Permission to access location was denied');
+      // progress = ('Permission to access location was denied');
       return;
     }
 
     let expoLocationData: LocationObject = await Location.getCurrentPositionAsync({});
-    // setHtmlContent(JSON.stringify(expoLocationData))
+    // progress = (JSON.stringify(expoLocationData))
     // if (expoLocationData != null) {
     //   let coords = expoLocationData["coords"]
     //   let latlng = [coords["latitude"], coords["longitude"]]
@@ -251,12 +264,15 @@ const LeafletMap = () => {
   // }, []);
 
   setInterval(async () => {
+    if (html == 'no html') {
+      return
+    }
     let expoLocationData = await getLocation()
     var run = '';
-    // setHtmlContent(JSON.stringify(location))
+    // progress = (JSON.stringify(location))
     if (expoLocationData != null) {
       let coords = expoLocationData["coords"]
-      // setHtmlContent(String(nearbyStops))
+      // progress = (String(nearbyStops))
       run = `
         window.userLocation = [${coords["latitude"]}, ${coords["longitude"]}];
         window.iconFileLocations = ${JSON.stringify(iconUriArr)}
@@ -275,6 +291,7 @@ const LeafletMap = () => {
 export default function HomeScreen() {
   const [draggableHeight, setDraggableHeight] = useState(Dimensions.get('window').height * 0.5);
   const [mapHeight, setMapHeight] = useState(Dimensions.get('window').height * 0.5);
+  const [p, setP] = useState('')
 
   useEffect(() => {
     setMapHeight(Dimensions.get('window').height - draggableHeight);
@@ -285,11 +302,16 @@ export default function HomeScreen() {
     setDraggableHeight(Dimensions.get('window').height * 0.2)
   }
 
+  setInterval(() => {
+    setP(progress)
+  }, 1000)
+
   return (
     <View>
       <View style={{ height: mapHeight }}>
         <LeafletMap />
       </View>
+      <Text>{p}</Text>
       {/* <DraggableContainer height={draggableHeight} setHeight={setDraggableHeight}></DraggableContainer> */}
     </View>
   );

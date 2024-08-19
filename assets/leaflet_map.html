@@ -10,7 +10,7 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <!-- <script src="./bundle.js"></script> -->
     <script src="https://cdn.jsdelivr.net/gh/ZarmDev/transitHelper@experimental/dist/bundle.js"></script>
-    <!-- <script src="./out.js"></script> -->
+    <script src="./out.js"></script>
     <style>
         .custom-icon {
             position: relative;
@@ -42,7 +42,7 @@
 
         setInterval(() => {
             testing.innerText = window.userLocation
-            // ns.innerText = JSON.stringify(window.iconFileLocations)
+            // ns.innerText = window.iconFileLocations[0]
             // if (window.userLocation != null && map != null) {
             //     map.setView(window.userLocation, 26);
             // }
@@ -104,28 +104,35 @@
                     let stopID = tlcKeys[i]
                     let trainLines = tLCVals[i]["trainLine"]
                     stopID = stopID.slice(0, stopID.length - 1)
-                    var marker = null;
                     if (trainLines) {
                         let splitTrainLines = trainLines.split('-');
-                        // let iconHTML = '';
-                        // for (var j = 0; j < splitTrainLines.length; j++) {
-                        //     let filepath = window.iconFileLocations[0]
-                        //     // iconHTML += '<img src="' + filepath + '/' + splitTrainLines[j] + '.svg"' + ' style="position: absolute; width: 20px; height: 20px; left: ' + j * 20 + 'px;">';
-                        //     iconHTML += '<img src="' + filepath + ' style="position: absolute; width: 20px; height: 20px; left: ' + j * 20 + 'px;">';
-                        // }
-                        //         var customIcon = L.divIcon({
-                        //             className: 'custom-icon',
-                        //             // Doing this because if you use a tick backslash it will break it in webviewcontent.js
-                        //             html: [
-                        // '<div style="position: relative; width: 40px; height: 20px;">',
-                        //     String(iconHTML),
-                        //     '<div style="position: absolute; top: 20px; left: 0; width: 100%; text-align: center; font-size: 12px;">',
-                        //         String(stopname),
-                        //     '</div>',
-                        // '</div>'].join('■'),
-                        //             iconSize: [0, 0] // Adjust the size as needed
-                        //         });
-                        marker = L.marker(latlng).addTo(map);
+                        let iconHTML = '';
+                        for (var j = 0; j < splitTrainLines.length; j++) {
+                            let filepath = './images/svg/' + splitTrainLines[j] + '.svg';
+                            // iconHTML += '<img src="' + filepath + '/' + splitTrainLines[j] + '.svg"' + ' style="position: absolute; width: 20px; height: 20px; left: ' + j * 20 + 'px;">';
+                            iconHTML += '<img src="' + filepath + '" style="position: absolute; width: 20px; height: 20px; left: ' + j * 20 + 'px;">';
+                            // console.log('<img src="' + filepath + ' style="position: absolute; width: 20px; height: 20px; left: ' + j * 20 + 'px;">')
+                        }
+                        console.log([
+                                '<div style="position: relative; width: 40px; height: 20px;">',
+                                String(iconHTML),
+                                '<div style="position: absolute; top: 20px; left: 0; width: 100%; text-align: center; font-size: 12px;">',
+                                String(stopname),
+                                '</div>',
+                                '</div>'].join('\n'))
+                        var customIcon = L.divIcon({
+                            className: 'custom-icon',
+                            // Doing this because if you use a tick backslash it will break it in webviewcontent.js
+                            html: [
+                                '<div style="position: relative; width: 40px; height: 20px;">',
+                                String(iconHTML),
+                                '<div style="position: absolute; top: 20px; left: 0; width: 100%; text-align: center; font-size: 12px;">',
+                                String(stopname),
+                                '</div>',
+                                '</div>'].join('\n'),
+                            iconSize: [5, 5] // Adjust the size as needed
+                        });
+                        let marker = L.marker(latlng, {icon: customIcon}).addTo(map);
                         // doesn't matter which train line - they are all grouped together
                         let trainLine = trainLines[0];
                         marker.on('click', async function (stopID, stopname, trainLine) {
@@ -139,7 +146,7 @@
                     } else {
                         // console.log(stopname)
                         var busIcon = L.icon({
-                            iconUrl: './busSvgs/' + '' + '.svg',
+                            iconUrl: './busSvgs/' + 'Bx1' + '.svg',
                             iconSize: [0, 0],
                             iconAnchor: [22, 94],
                             popupAnchor: [-3, -76],

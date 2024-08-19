@@ -1,4 +1,4 @@
-var fs = require('fs')
+// var fs = require('fs')
 var tH = require('./other/bundle')
 const html = `<!-- key: ■ = newline -->
 <!DOCTYPE html>
