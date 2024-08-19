@@ -51,6 +51,7 @@
             var trainLineShapes = await getTrainLineShapes(outputShapes());
             // var trainLineCoords = await getAllTrainStopCoordinates(outputStops());
             let processedTrainStopData = await processTrainStopData(outputTrainStops());
+            console.log(processedTrainStopData)
             // const distance = 0.004;
             const distance = 0.01;
             var nearbyTrainLineCoords = await getNearbyStops(processedTrainStopData, window.userLocation, distance);
@@ -90,16 +91,6 @@
                 for (var i = 0; i < tLCVals.length; i++) {
                     // console.log(tLCVals[i])
                     let latlng = tLCVals[i]["coordinates"];
-                    // var myIcon = L.icon({
-                    //     iconUrl: './svg/1.svg',
-                    //     iconSize: [20, 77],
-                    //     iconAnchor: [22, 94],
-                    //     popupAnchor: [-3, -76],
-                    //     // shadowUrl: 'my-icon-shadow.png',
-                    //     // shadowSize: [68, 95],
-                    //     // shadowAnchor: [22, 94]
-                    // });
-                    // let marker2 = L.marker(latlng).addTo(map);
                     let stopname = tLCVals[i]["stopname"]
                     let stopID = tlcKeys[i]
                     let trainLines = tLCVals[i]["trainLine"]
@@ -113,13 +104,6 @@
                             iconHTML += '<img src="' + filepath + '" style="position: absolute; width: 20px; height: 20px; left: ' + j * 20 + 'px;">';
                             // console.log('<img src="' + filepath + ' style="position: absolute; width: 20px; height: 20px; left: ' + j * 20 + 'px;">')
                         }
-                        console.log([
-                                '<div style="position: relative; width: 40px; height: 20px;">',
-                                String(iconHTML),
-                                '<div style="position: absolute; top: 20px; left: 0; width: 100%; text-align: center; font-size: 12px;">',
-                                String(stopname),
-                                '</div>',
-                                '</div>'].join('\n'))
                         var customIcon = L.divIcon({
                             className: 'custom-icon',
                             // Doing this because if you use a tick backslash it will break it in webviewcontent.js

@@ -203,29 +203,29 @@ const LeafletMap = () => {
   }
 
   useEffect(() => {
-    const loadIcons = async () => {
-      const icons = [
-        require('../../assets/images/svg/1.svg'),
-        require('../../assets/images/svg/2.svg'),
-      ];
-      // Help from AI! (a lot lol)
-      const loadedIcons = await Promise.all(
-        icons.map(async (icon) => {
-          const asset = Asset.fromModule(icon);
-          await asset.downloadAsync();
-          const fileUri = asset.localUri || asset.uri;
-          const fileContents = await FileSystem.readAsStringAsync(fileUri, {
-            encoding: FileSystem.EncodingType.Base64,
-          });
-          return `data:image/svg+xml;base64,${fileContents}`;
-        })
-      );
-      // progress = JSON.stringify(loadedIcons);
-      progress = "loaded icons"
-      setIconUriArr(loadedIcons);
-    };
+    // const loadIcons = async () => {
+    //   const icons = [
+    //     require('../../assets/images/svg/1.svg'),
+    //     require('../../assets/images/svg/2.svg'),
+    //   ];
+    //   // Help from AI! (a lot lol)
+    //   const loadedIcons = await Promise.all(
+    //     icons.map(async (icon) => {
+    //       const asset = Asset.fromModule(icon);
+    //       await asset.downloadAsync();
+    //       const fileUri = asset.localUri || asset.uri;
+    //       const fileContents = await FileSystem.readAsStringAsync(fileUri, {
+    //         encoding: FileSystem.EncodingType.Base64,
+    //       });
+    //       return `data:image/svg+xml;base64,${fileContents}`;
+    //     })
+    //   );
+    //   // progress = JSON.stringify(loadedIcons);
+    //   progress = "loaded icons"
+    //   setIconUriArr(loadedIcons);
+    // };
 
-    loadIcons();
+    // loadIcons();
   }, []);
 
   useEffect(() => {
