@@ -5,6 +5,8 @@ google_transit
 buses
 svg
 busSvgs
+android
+.idea
 %ProgramData%
 npm-debug.*
 *.jks

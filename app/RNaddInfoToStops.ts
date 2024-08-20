@@ -18,13 +18,13 @@ export async function addTrainLinesToStopsFile(stopFilePath: string, shapeFilePa
     const stopData = await FileSystem.readAsStringAsync(stopFilePath)
     const splitStopData = stopData.split('\n')
     // for (var i = 1; i < splitShapeData.length - 1; i += 2) {
-    for (var i = 1; i < splitShapeData.length - 1; i += 4) {
+    for (var i = 1; i < splitShapeData.length - 1; i++) {
         const splitByComma = splitShapeData[i].split(',')
         const [shape_id, shape_pt_sequence, shape_pt_lat, shape_pt_lon] = splitByComma;
         let trainline = shape_id.slice(0, shape_id.indexOf('.'))
         // let stop_id = shape_id.slice(shape_id.indexOf('.') + 2, shape_id.length)
         let coordinates = [shape_pt_lat, shape_pt_lon]
-        for (var j = 1; j < splitStopData.length - 1; j += 4) {
+        for (var j = 1; j < splitStopData.length - 1; j++) {
             let splitByComma2 = splitStopData[j].split(',')
             const [stop_id, stop_name, stop_lat, stop_lon, location_type, parent_station] = splitByComma2;
             let coordinates2 = [stop_lat, stop_lon]

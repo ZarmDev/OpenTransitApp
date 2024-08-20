@@ -19,6 +19,14 @@
         .custom-icon img {
             position: absolute;
         }
+
+        #map {
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            padding: 0;
+            margin: 0;
+        }
     </style>
 </head>
 
@@ -27,7 +35,7 @@
     <p id="ns">Ns</p>
     <label for="key">Bus api key</label>
     <input id="busApiKey" name="key" type="text">
-    <div id="map" style="height: 600px;"></div>
+    <div id="map"></div>
     <script>
         window.userLocation = [40.71775244918452, -73.9990371376651]
         // window.iconFileLocations = ['./1']
@@ -41,8 +49,8 @@
         }).addTo(map);
 
         setInterval(() => {
-            testing.innerText = window.userLocation
-            // ns.innerText = window.iconFileLocations[0]
+            // testing.innerText = window.userLocation
+            // ns.innerText = window.iconFileLocations[0].slice(0, 100)
             // if (window.userLocation != null && map != null) {
             //     map.setView(window.userLocation, 26);
             // }
@@ -98,8 +106,11 @@
                     if (trainLines) {
                         let splitTrainLines = trainLines.split('-');
                         let iconHTML = '';
+                        const trainLinesWithIcons = ["1", "2", "3", "4", "5", "6", "7", "7d", "a", "b", "c", "d", "e", "f", "g", "h", "j", "l", "m", "n", "q", "r", "s", "sf", "sir", "sr", "w", "z"]
                         for (var j = 0; j < splitTrainLines.length; j++) {
-                            let filepath = './images/svg/' + splitTrainLines[j] + '.svg';
+                            // let filepath = './images/svg/' + splitTrainLines[j] + '.svg';
+                            // Basically, window.iconFileLocations is ordered the same with trainLinesWithIcons so just get the index of the train line based on the train lines which are found in stops.txt
+                            let filepath = window.iconFileLocations[trainLinesWithIcons.indexOf(splitTrainLines[j])]
                             // iconHTML += '<img src="' + filepath + '/' + splitTrainLines[j] + '.svg"' + ' style="position: absolute; width: 20px; height: 20px; left: ' + j * 20 + 'px;">';
                             iconHTML += '<img src="' + filepath + '" style="position: absolute; width: 20px; height: 20px; left: ' + j * 20 + 'px;">';
                             // console.log('<img src="' + filepath + ' style="position: absolute; width: 20px; height: 20px; left: ' + j * 20 + 'px;">')
@@ -113,10 +124,10 @@
                                 '<div style="position: absolute; top: 20px; left: 0; width: 100%; text-align: center; font-size: 12px;">',
                                 String(stopname),
                                 '</div>',
-                                '</div>'].join('\n'),
+                                '</div>'].join('■'),
                             iconSize: [5, 5] // Adjust the size as needed
                         });
-                        let marker = L.marker(latlng, {icon: customIcon}).addTo(map);
+                        let marker = L.marker(latlng, { icon: customIcon }).addTo(map);
                         // doesn't matter which train line - they are all grouped together
                         let trainLine = trainLines[0];
                         marker.on('click', async function (stopID, stopname, trainLine) {
@@ -153,7 +164,7 @@
         busInput.addEventListener('change', async () => {
             test();
         })
-        test()
+        setTimeout(test, 500)
     </script>
 </body>
 

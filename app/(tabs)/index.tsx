@@ -7,7 +7,6 @@ import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
 import { DraggableContainer } from '@/components/DraggableContainer';
 import { Asset, useAssets } from 'expo-asset';
-// import { bundle } from '../bundleX'
 import { addTrainLinesToStopsFile } from '../RNaddInfoToStops'
 
 // var bundleC = bundle.replace(/\δ/g, '$').replace(/\⒓/g, '{').replace(/\⇎/g, '`')
@@ -52,14 +51,80 @@ const LeafletMap = () => {
   // const [oneT, err2] = useAssets(require('../other/leaflet_map.html'))
   const [html, setHtml] = useState("no html");
   const [reRender, setReRender] = useState("");
-  // average JS developer when they see: <string[]>([]) 😒
-  const [iconUriArr, setIconUriArr] = useState<string[]>([]);
+  // !!! Generate the require statements using scripts/generateIconFilePaths.js
+  const [iconAssets, err2] = useAssets([require('../../assets/images/svg/1.svg'),
+  require('../../assets/images/svg/2.svg'),
+  require('../../assets/images/svg/3.svg'),
+  require('../../assets/images/svg/4.svg'),
+  require('../../assets/images/svg/5.svg'),
+  require('../../assets/images/svg/6.svg'),
+  require('../../assets/images/svg/7.svg'),
+  require('../../assets/images/svg/7d.svg'),
+  require('../../assets/images/svg/a.svg'),
+  require('../../assets/images/svg/b.svg'),
+  require('../../assets/images/svg/c.svg'),
+  require('../../assets/images/svg/d.svg'),
+  require('../../assets/images/svg/e.svg'),
+  require('../../assets/images/svg/f.svg'),
+  require('../../assets/images/svg/g.svg'),
+  require('../../assets/images/svg/h.svg'),
+  require('../../assets/images/svg/j.svg'),
+  require('../../assets/images/svg/l.svg'),
+  require('../../assets/images/svg/m.svg'),
+  require('../../assets/images/svg/n.svg'),
+  require('../../assets/images/svg/q.svg'),
+  require('../../assets/images/svg/r.svg'),
+  require('../../assets/images/svg/s.svg'),
+  require('../../assets/images/svg/sf.svg'),
+  require('../../assets/images/svg/sir.svg'),
+  require('../../assets/images/svg/sr.svg'),
+  require('../../assets/images/svg/w.svg'),
+  require('../../assets/images/svg/z.svg'),
+  ]);
+  const [iconData, setIconData] = useState<string[]>([])
 
   const webref = useRef<WebView>(null);
   // where we should find the zip folder and unzip it
   const uri = FileSystem.cacheDirectory + "google_transit/google_transit.zip";
   // where we an put the unzipped folder
   const targetPath = FileSystem.cacheDirectory + "google_transit/";
+
+  async function getHTMLContents() {
+    progress = `${htmlFile} ${err}`
+    if (htmlFile && htmlFile[0].localUri) {
+      await FileSystem.readAsStringAsync(htmlFile[0].localUri).then((data) => {
+        setHtml(data);
+      });
+    }
+  }
+
+  useEffect(() => {
+    getHTMLContents()
+  }, [htmlFile])
+
+  async function getIconUris() {
+    if (iconAssets) {
+      let iconArr: string[] = [];
+      for (var i = 0; i < iconAssets.length; i++) {
+        if (iconAssets[i]) {
+          let localU = iconAssets[i].localUri;
+          if (localU) {
+            const fileContents = await FileSystem.readAsStringAsync(localU, {
+              encoding: FileSystem.EncodingType.Base64,
+            })
+            iconArr.push(`data:image/svg+xml;base64,${fileContents}`);
+          }
+        }
+      }
+      setIconData(iconArr)
+    }
+  }
+
+  useEffect(() => {
+    if (iconAssets) {
+      getIconUris()
+    }
+  }, [iconAssets])
 
   // First, create a folder called google_transit in the cache and download the zip
   // Should have a file at cache/google_transit/google_transit.zip
@@ -154,22 +219,6 @@ const LeafletMap = () => {
     }
   }, [hasGTFSDownloaded])
 
-  async function getHTMLContents() {
-    // @ts-ignore
-    progress = `${htmlFile} ${err}`
-    if (htmlFile && htmlFile[0].localUri) {
-      await FileSystem.readAsStringAsync(htmlFile[0].localUri).then((data) => {
-        setHtml(data);
-      });
-    }
-  }
-
-  useEffect(() => {
-    if (hasUnZipped) {
-      getHTMLContents()
-    }
-  }, [hasUnZipped])
-
   async function main() {
     await FileSystem.readAsStringAsync(targetPath + "/stops.txt")
       .then((data) => {
@@ -208,6 +257,7 @@ const LeafletMap = () => {
             }
           }
           setHtmlContent(lineSplit.join('\n').replace('■', '\n'))
+          setTimeout(updateWebView, 1000)
         }
       })
       .catch((error) => {
@@ -217,39 +267,14 @@ const LeafletMap = () => {
   }
 
   useEffect(() => {
-    // const loadIcons = async () => {
-    //   const icons = [
-    //     require('../../assets/images/svg/1.svg'),
-    //     require('../../assets/images/svg/2.svg'),
-    //   ];
-    //   // Help from AI! (a lot lol)
-    //   const loadedIcons = await Promise.all(
-    //     icons.map(async (icon) => {
-    //       const asset = Asset.fromModule(icon);
-    //       await asset.downloadAsync();
-    //       const fileUri = asset.localUri || asset.uri;
-    //       const fileContents = await FileSystem.readAsStringAsync(fileUri, {
-    //         encoding: FileSystem.EncodingType.Base64,
-    //       });
-    //       return `data:image/svg+xml;base64,${fileContents}`;
-    //     })
-    //   );
-    //   // progress = JSON.stringify(loadedIcons);
-    //   progress = "loaded icons"
-    //   setIconUriArr(loadedIcons);
-    // };
-
-    // loadIcons();
-  }, []);
-
-  useEffect(() => {
     // if zip downloaded + html ready to render
     // if (hasUnZipped && html != 'no html' && iconUriArr.length != 0) {
-    if (hasUnZipped && html != 'no html') {
+    progress = `${hasUnZipped} ${html} ${htmlFile}`
+    if (hasUnZipped && html != 'no html' && iconData.length != 0) {
       progress = "Running main"
       main()
     }
-  }, [hasUnZipped, html]);
+  }, [hasUnZipped, html, iconData]);
 
   async function getLocation() {
     // progress = ("Permission granted?")
@@ -278,8 +303,8 @@ const LeafletMap = () => {
   //   return () => clearInterval(intervalId);
   // }, []);
 
-  setInterval(async () => {
-    if (html == 'no html') {
+  async function updateWebView() {
+    if (!(hasUnZipped && html != 'no html' && iconData)) {
       return
     }
     let expoLocationData = await getLocation()
@@ -289,8 +314,8 @@ const LeafletMap = () => {
       let coords = expoLocationData["coords"]
       // progress = (String(nearbyStops))
       run = `
-        window.userLocation = [${coords["latitude"]}, ${coords["longitude"]}];
-        window.iconFileLocations = ${JSON.stringify(iconUriArr)}
+        window.iconFileLocations = ${JSON.stringify(iconData)}
+        window.userLocation = [40.71775244918452, -73.9990371376651];
         true;
       `;
       setReRender("z")
@@ -298,7 +323,9 @@ const LeafletMap = () => {
         webref.current.injectJavaScript(run);
       }
     }
-  }, 3000);
+  }
+
+  setInterval(updateWebView, 10000);
 
   return <WebView originWhitelist={['*']} ref={webref} source={{ html: htmlContent }} style={{ flex: 1 }} />;
 };
