@@ -34,14 +34,13 @@
         "expo-asset",
         {
           "assets": [
-            "assets",
-            "app/other"
+            "assets"
           ]
         }
       ]
     ],
     "assetBundlePatterns": [
-      "app/other/**"
+      "assets/**"
     ],
     "packagerOpts": {
       "assetExts": ["html", "css", "js"]

@@ -7,9 +7,10 @@ import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
 import { DraggableContainer } from '@/components/DraggableContainer';
 import { Asset, useAssets } from 'expo-asset';
-import { bundle } from '../bundleX'
+// import { bundle } from '../bundleX'
+import { addTrainLinesToStopsFile } from '../RNaddInfoToStops'
 
-var bundleC = bundle.replace(/\δ/g, '$').replace(/\⒓/g, '{').replace(/\⇎/g, '`')
+// var bundleC = bundle.replace(/\δ/g, '$').replace(/\⒓/g, '{').replace(/\⇎/g, '`')
 
 // ## INTERFACES ##
 // AI + me :)
@@ -43,26 +44,16 @@ const LeafletMap = () => {
   // var htmlContent = assets ? assets : null;
   const [htmlContent, setHtmlContent] = useState(``);
   const [entries, setEntries] = useState([]);
-  const [zipDownloaded, setZipDownloaded] = useState(false);
+  const [hasGTFSDownloaded, setGTFSDownloaded] = useState(false);
+  const [hasUnZipped, setUnzipped] = useState(false);
   // AI (<LocationObject | null>(null); <- what???)
   // const [location, setLocation] = useState<LocationObject | null>(null);
   const [htmlFile, err] = useAssets(require('../../assets/leaflet_map.html'))
   // const [oneT, err2] = useAssets(require('../other/leaflet_map.html'))
   const [html, setHtml] = useState("no html");
   const [reRender, setReRender] = useState("");
-  // ????????
+  // average JS developer when they see: <string[]>([]) 😒
   const [iconUriArr, setIconUriArr] = useState<string[]>([]);
-
-  useEffect(() => {
-    async function test() {
-      if (htmlFile && htmlFile[0].localUri) {
-        await FileSystem.readAsStringAsync(htmlFile[0].localUri).then((data) => {
-          setHtml(data);
-        });
-      }
-    }
-    test()
-  })
 
   const webref = useRef<WebView>(null);
   // where we should find the zip folder and unzip it
@@ -72,28 +63,31 @@ const LeafletMap = () => {
 
   // First, create a folder called google_transit in the cache and download the zip
   // Should have a file at cache/google_transit/google_transit.zip
-  useEffect(() => {
+  async function downloadGTFSData() {
     const zipUrl = "http://web.mta.info/developers/data/nyct/subway/google_transit.zip";
-    
+
     // Btw, zip files are FILES not directories
-    doesFileExist(uri).then((isFile) => {
+    doesFileExist(uri).then(async (isFile) => {
       if (isFile) {
         progress = ("ZIP already downloaded")
-        console.log("ZIP file already downloaded");
-        setZipDownloaded(true);
+        // console.log("ZIP file already downloaded");
+        setUnzipped(true);
       } else {
         progress = ("Downloading zip...")
-        createDirectory(FileSystem.cacheDirectory + "google_transit")
-        FileSystem.downloadAsync(zipUrl, uri)
+        await createDirectory(FileSystem.cacheDirectory + "google_transit")
+        await FileSystem.downloadAsync(zipUrl, uri)
           .then(({ uri }) => {
             console.log("Finished downloading to", uri);
-            setZipDownloaded(true);
+            setGTFSDownloaded(true);
           })
           .catch((error) => {
             console.error(error);
           });
       }
-    });
+    })
+  }
+  useEffect(() => {
+    downloadGTFSData()
   }, []);
 
   async function createDirectory(path: any) {
@@ -138,12 +132,16 @@ const LeafletMap = () => {
       // progress = (`Initial file count: ${initialFileCount}`);
 
       const path = await unzip(uri, targetPath, "UTF-8");
-      // progress = (`unzip completed at ${path}`);
+      progress = (`unzip completed at ${path}`);
 
       // const finalFileCount = await countFilesInDirectory(targetPath);
       // progress = (`Final file count: ${finalFileCount}`);
       await readCacheDirectory(setEntries); // Ensure readCacheDirectory is awaited if it's async
-      setZipDownloaded(true)
+      progress = "Hanging on addTrainLinesToStopsFile (may take a few minutes...)"
+      // ## Add train lines to the stops file!!! ##
+      const z = await addTrainLinesToStopsFile(targetPath + 'stops.txt', targetPath + 'shapes.txt', targetPath + 'stops.txt')
+      progress = "Success!"
+      setUnzipped(true)
     } catch (error) {
       console.error('Error during unzipping:', error);
     }
@@ -151,10 +149,26 @@ const LeafletMap = () => {
   }
 
   useEffect(() => {
-    if (!zipDownloaded) {
+    if (hasGTFSDownloaded) {
       unzipFolder()
     }
-  }, [])
+  }, [hasGTFSDownloaded])
+
+  async function getHTMLContents() {
+    // @ts-ignore
+    progress = `${htmlFile} ${err}`
+    if (htmlFile && htmlFile[0].localUri) {
+      await FileSystem.readAsStringAsync(htmlFile[0].localUri).then((data) => {
+        setHtml(data);
+      });
+    }
+  }
+
+  useEffect(() => {
+    if (hasUnZipped) {
+      getHTMLContents()
+    }
+  }, [hasUnZipped])
 
   async function main() {
     await FileSystem.readAsStringAsync(targetPath + "/stops.txt")
@@ -230,11 +244,12 @@ const LeafletMap = () => {
 
   useEffect(() => {
     // if zip downloaded + html ready to render
-    if (zipDownloaded && html != 'no html' && iconUriArr.length != 0) {
-      // progress = (`${zipDownloaded}, ${html}, ${iconUriArr}`)
+    // if (hasUnZipped && html != 'no html' && iconUriArr.length != 0) {
+    if (hasUnZipped && html != 'no html') {
+      progress = "Running main"
       main()
     }
-  }, [zipDownloaded, html, iconUriArr]);
+  }, [hasUnZipped, html]);
 
   async function getLocation() {
     // progress = ("Permission granted?")
