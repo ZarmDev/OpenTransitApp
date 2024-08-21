@@ -9,8 +9,8 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <!-- <script src="./bundle.js"></script> -->
-    <script src="https://cdn.jsdelivr.net/gh/ZarmDev/transitHelper@experimental/dist/bundle.js"></script>
-    <script src="./out.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ZarmDev/transitHelper@latest/dist/bundle.js"></script>
+    <!-- <script src="../scripts/out.js"></script> -->
     <style>
         .custom-icon {
             position: relative;
@@ -103,6 +103,8 @@
                     let stopID = tlcKeys[i]
                     let trainLines = tLCVals[i]["trainLine"]
                     stopID = stopID.slice(0, stopID.length - 1)
+                    // let marker = L.marker(latlng).addTo(map);
+                    // continue
                     if (trainLines) {
                         let splitTrainLines = trainLines.split('-');
                         let iconHTML = '';

@@ -204,8 +204,10 @@ const LeafletMap = () => {
       await readCacheDirectory(setEntries); // Ensure readCacheDirectory is awaited if it's async
       progress = "Hanging on addTrainLinesToStopsFile (may take a few minutes...)"
       // ## Add train lines to the stops file!!! ##
-      const z = await addTrainLinesToStopsFile(targetPath + 'stops.txt', targetPath + 'shapes.txt', targetPath + 'stops.txt')
-      progress = "Success!"
+      const shapeData = await FileSystem.readAsStringAsync(targetPath + 'stops.txt')
+      const stopData = await FileSystem.readAsStringAsync(targetPath + 'shapes.txt')
+      const z = await addTrainLinesToStopsFile(shapeData, stopData, targetPath + 'stops.txt')
+      progress = z
       setUnzipped(true)
     } catch (error) {
       console.error('Error during unzipping:', error);

@@ -18,6 +18,18 @@ A lot of AI was used to debug and to create functions like DraggableContainer.
 Originally, I was trying to use the react-native-maps library but I really didn't want to pay Google Maps so
 thanks OpenStreetMaps!
 
+# Cider
+✅Your app must be open-source, original, unique & built using either React Native or SwiftUI
+✅It is recommended to use #arcade to log your progress while building the app.
+❌Your app must have 25 users using your app while it's in TestFlight.
+✅The app should solve a real problem or add significant value to the users' lives. Describe how the app will impact its users and what specific issues it addresses.
+❌The app should have at least five unique screens (e.g., home, profile, settings, notifications, and a feature-specific screen).
+❌The app must include at least three core features that work together to create a cohesive experience. For example, a social network app could include user profiles, a news feed, and direct messaging.
+✅The app must have some sort of data management system, using either local storage, cloud databases, or APIs.
+❔The app could involve integrating with external APIs, or using advanced features of React Native or SwiftUI.
+❌The app should have a clean, user-friendly design that is easy to navigate and visually appealing.
+The app must be submitted by August 31st, 2024 to be considered for the grant.
+
 # NOTE FOR MYSELF
 npx eas build --profile=development --platform=android
 Or to do it locally, npx expo prebuild, cd android, ./gradlew build and move app/build/outputs/apk/debug or app/build/outputs/apk/release to Downloads and install on the device.
