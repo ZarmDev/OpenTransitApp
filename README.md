@@ -1,4 +1,4 @@
-# TransitApp
+# OpenTransit
 A transit app for NYC.
 
 It was built for Cider and also to learn React Native.
@@ -20,6 +20,7 @@ thanks OpenStreetMaps!
 
 # NOTE FOR MYSELF
 npx eas build --profile=development --platform=android
+Or to do it locally, npx expo prebuild, cd android, ./gradlew build and move app/build/outputs/apk/debug or app/build/outputs/apk/release to Downloads and install on the device.
 **Instaling native modules require a new native build**
 https://egghead.io/lessons/react-native-create-a-development-build-for-android-with-eas
 https://stackoverflow.com/questions/41871519/leaflet-js-quickest-path-with-custom-points

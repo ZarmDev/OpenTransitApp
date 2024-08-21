@@ -1,12 +1,15 @@
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { Text, View, StyleSheet, Dimensions } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 // import ServiceAlerts from '@/components/ServiceAlerts';
 import * as FileSystem from 'expo-file-system';
 import { unzip } from 'react-native-zip-archive'
 import { WebView } from 'react-native-webview';
-import { html } from '../webviewcontent'
 import * as Location from 'expo-location';
 import { DraggableContainer } from '@/components/DraggableContainer';
+import { Asset, useAssets } from 'expo-asset';
+import { addTrainLinesToStopsFile } from '../RNaddInfoToStops'
+
+// var bundleC = bundle.replace(/\δ/g, '$').replace(/\⒓/g, '{').replace(/\⇎/g, '`')
 
 // ## INTERFACES ##
 // AI + me :)
@@ -27,7 +30,7 @@ interface LocationObject {
 // ## VARIABLES ##
 var shapeData: string[] = [];
 var stopData: string[] = [];
-var roundedStopData: string[][] = [];
+var progress = ''
 
 // thanks AI
 // function distance(lat : Number, long : Number) {
@@ -36,53 +39,121 @@ var roundedStopData: string[][] = [];
 //   return Math.sqrt(latDiff * latDiff + lonDiff * lonDiff);
 // }
 
-function getNearbyStops(coords: LocationObject["coords"]) {
-  let stops = [];
-  if (stopData.length != 0) {
-    let precision = 2;
-    // keep it in the memory to save performance
-    if (roundedStopData.length == 0) {
-      for (var i = 1; i < stopData.length; i++) {
-        let split = stopData[i].split(',')
-        let latlng = [split[2], split[3]].map((coord) => parseFloat(coord).toFixed(precision))
-        roundedStopData.push(latlng)
-      }
-    }
-    let roundedCoords = [coords["latitude"], coords["longitude"]].map((i) => parseFloat(i.toFixed(precision)));
-    for (var i = 0; i < roundedStopData.length; i++) {
-      // let latSame = roundedStopData[i][0] == roundedCoords[0];
-      // let longSame = roundedStopData[i][1] == roundedCoords[1];
-      let acceptableDifference = 0.1;
-      let currRoundedStopData = roundedStopData[i];
-      // if the latitude/longitude is close enough by the acceptableDifference (plus or minus range)
-      let latMinus = (Number(currRoundedStopData[0]) - acceptableDifference);
-      let latPlus = (Number(currRoundedStopData[0]) + acceptableDifference);
-      let longMinus = (Number(currRoundedStopData[1]) - acceptableDifference);
-      let longPlus = (Number(currRoundedStopData[1]) + acceptableDifference);
-
-      let inRangeLat = (latMinus <= roundedCoords[0]) && (latPlus >= roundedCoords[0])
-      let inRangeLong = (longMinus <= roundedCoords[1]) && (longPlus >= roundedCoords[1])
-      // if ((latSame && longSame)) {
-      if (inRangeLat && inRangeLong) {
-        let stopname = stopData[i].split(',')[1]
-        stops.push(stopname)
-      }
-    }
-    return stops
-  }
-  return `Failed ${stopData.length != 0} ${roundedStopData.length == 0}`
-}
-
 const LeafletMap = () => {
   // var htmlContent = assets ? assets : null;
-  const [htmlContent, setHtmlContent] = useState(`<h1>Loading...</h1>`);
+  const [htmlContent, setHtmlContent] = useState(``);
   const [entries, setEntries] = useState([]);
-  const [downloaded, setDownloaded] = useState(false);
+  const [hasGTFSDownloaded, setGTFSDownloaded] = useState(false);
+  const [hasUnZipped, setUnzipped] = useState(false);
   // AI (<LocationObject | null>(null); <- what???)
-  const [location, setLocation] = useState<LocationObject | null>(null);
+  // const [location, setLocation] = useState<LocationObject | null>(null);
+  const [htmlFile, err] = useAssets(require('../../assets/leaflet_map.html'))
+  // const [oneT, err2] = useAssets(require('../other/leaflet_map.html'))
+  const [html, setHtml] = useState("no html");
+  const [reRender, setReRender] = useState("");
+  // !!! Generate the require statements using scripts/generateIconFilePaths.js
+  const [iconAssets, err2] = useAssets([require('../../assets/images/svg/1.svg'),
+  require('../../assets/images/svg/2.svg'),
+  require('../../assets/images/svg/3.svg'),
+  require('../../assets/images/svg/4.svg'),
+  require('../../assets/images/svg/5.svg'),
+  require('../../assets/images/svg/6.svg'),
+  require('../../assets/images/svg/7.svg'),
+  require('../../assets/images/svg/7d.svg'),
+  require('../../assets/images/svg/a.svg'),
+  require('../../assets/images/svg/b.svg'),
+  require('../../assets/images/svg/c.svg'),
+  require('../../assets/images/svg/d.svg'),
+  require('../../assets/images/svg/e.svg'),
+  require('../../assets/images/svg/f.svg'),
+  require('../../assets/images/svg/g.svg'),
+  require('../../assets/images/svg/h.svg'),
+  require('../../assets/images/svg/j.svg'),
+  require('../../assets/images/svg/l.svg'),
+  require('../../assets/images/svg/m.svg'),
+  require('../../assets/images/svg/n.svg'),
+  require('../../assets/images/svg/q.svg'),
+  require('../../assets/images/svg/r.svg'),
+  require('../../assets/images/svg/s.svg'),
+  require('../../assets/images/svg/sf.svg'),
+  require('../../assets/images/svg/sir.svg'),
+  require('../../assets/images/svg/sr.svg'),
+  require('../../assets/images/svg/w.svg'),
+  require('../../assets/images/svg/z.svg'),
+  ]);
+  const [iconData, setIconData] = useState<string[]>([])
 
   const webref = useRef<WebView>(null);
+  // where we should find the zip folder and unzip it
   const uri = FileSystem.cacheDirectory + "google_transit/google_transit.zip";
+  // where we an put the unzipped folder
+  const targetPath = FileSystem.cacheDirectory + "google_transit/";
+
+  async function getHTMLContents() {
+    progress = `${htmlFile} ${err}`
+    if (htmlFile && htmlFile[0].localUri) {
+      await FileSystem.readAsStringAsync(htmlFile[0].localUri).then((data) => {
+        setHtml(data);
+      });
+    }
+  }
+
+  useEffect(() => {
+    getHTMLContents()
+  }, [htmlFile])
+
+  async function getIconUris() {
+    if (iconAssets) {
+      let iconArr: string[] = [];
+      for (var i = 0; i < iconAssets.length; i++) {
+        if (iconAssets[i]) {
+          let localU = iconAssets[i].localUri;
+          if (localU) {
+            const fileContents = await FileSystem.readAsStringAsync(localU, {
+              encoding: FileSystem.EncodingType.Base64,
+            })
+            iconArr.push(`data:image/svg+xml;base64,${fileContents}`);
+          }
+        }
+      }
+      setIconData(iconArr)
+    }
+  }
+
+  useEffect(() => {
+    if (iconAssets) {
+      getIconUris()
+    }
+  }, [iconAssets])
+
+  // First, create a folder called google_transit in the cache and download the zip
+  // Should have a file at cache/google_transit/google_transit.zip
+  async function downloadGTFSData() {
+    const zipUrl = "http://web.mta.info/developers/data/nyct/subway/google_transit.zip";
+
+    // Btw, zip files are FILES not directories
+    doesFileExist(uri).then(async (isFile) => {
+      if (isFile) {
+        progress = ("ZIP already downloaded")
+        // console.log("ZIP file already downloaded");
+        setUnzipped(true);
+      } else {
+        progress = ("Downloading zip...")
+        await createDirectory(FileSystem.cacheDirectory + "google_transit")
+        await FileSystem.downloadAsync(zipUrl, uri)
+          .then(({ uri }) => {
+            console.log("Finished downloading to", uri);
+            setGTFSDownloaded(true);
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      }
+    })
+  }
+  useEffect(() => {
+    downloadGTFSData()
+  }, []);
 
   async function createDirectory(path: any) {
     try {
@@ -100,49 +171,61 @@ const LeafletMap = () => {
     setEntries(entries);
   }
 
-  async function isFileAsync(uri: any) {
+  async function doesFileExist(uri: any) {
     const result = await FileSystem.getInfoAsync(uri);
     return result.exists && !result.isDirectory;
   }
 
-  async function listDirectoryContents(targetPath: any) {
-    try {
-      const contents = await FileSystem.readDirectoryAsync(targetPath);
-      console.log('Directory contents:', contents);
-    } catch (error) {
-      console.error('Error reading directory:', error);
-    }
-  }
-  async function countFilesInDirectory(directory: string): Promise<number> {
-    const files = await FileSystem.readDirectoryAsync(directory);
-    return files.length;
-  }
+  // async function listDirectoryContents(targetPath: any) {
+  //   try {
+  //     const contents = await FileSystem.readDirectoryAsync(targetPath);
+  //     // console.log('Directory contents:', contents);
+  //   } catch (error) {
+  //     // console.error('Error reading directory:', error);
+  //   }
+  // }
 
-  async function main() {
-    // where we want to put the unzipped folder
-    const targetPath = FileSystem.cacheDirectory + "google_transit/";
-    setHtmlContent('unzipping folder...')
+  // async function countFilesInDirectory(directory: string): Promise<number> {
+  //   const files = await FileSystem.readDirectoryAsync(directory);
+  //   return files.length;
+  // }
+
+  async function unzipFolder() {
+    progress = ('unzipping folder...')
     try {
-      const initialFileCount = await countFilesInDirectory(targetPath);
-      setHtmlContent(`Initial file count: ${initialFileCount}`);
+      // const initialFileCount = await countFilesInDirectory(targetPath);
+      // progress = (`Initial file count: ${initialFileCount}`);
 
       const path = await unzip(uri, targetPath, "UTF-8");
-      setHtmlContent(`unzip completed at ${path}`);
+      progress = (`unzip completed at ${path}`);
 
-      const finalFileCount = await countFilesInDirectory(targetPath);
-      setHtmlContent(`Final file count: ${finalFileCount}`);
-
+      // const finalFileCount = await countFilesInDirectory(targetPath);
+      // progress = (`Final file count: ${finalFileCount}`);
       await readCacheDirectory(setEntries); // Ensure readCacheDirectory is awaited if it's async
+      progress = "Hanging on addTrainLinesToStopsFile (may take a few minutes...)"
+      // ## Add train lines to the stops file!!! ##
+      const z = await addTrainLinesToStopsFile(targetPath + 'stops.txt', targetPath + 'shapes.txt', targetPath + 'stops.txt')
+      progress = "Success!"
+      setUnzipped(true)
     } catch (error) {
       console.error('Error during unzipping:', error);
     }
-    listDirectoryContents(targetPath);
+    // listDirectoryContents(targetPath);
+  }
 
+  useEffect(() => {
+    if (hasGTFSDownloaded) {
+      unzipFolder()
+    }
+  }, [hasGTFSDownloaded])
+
+  async function main() {
     await FileSystem.readAsStringAsync(targetPath + "/stops.txt")
       .then((data) => {
         stopData = data.split('\n');
       })
       .catch((error) => {
+        // progress = ('Failed to get stopData')
         console.log(error);
       });
 
@@ -151,111 +234,98 @@ const LeafletMap = () => {
         // console.log('stops.txt' + data);
         shapeData = data.split('\n');
         // inject data into html at var trainLineFunc = await getTrainLineShapes();
-        let lineSplit = html.split('\n')
-        for (var i = 0; i < lineSplit.length; i++) {
-          if (lineSplit[i].includes('var trainLineShapes')) {
-            let firstP = lineSplit[i].indexOf('(');
-            let firstPart = lineSplit[i].slice(0, firstP + 1)
-            let secondPart = ');'
-            // modify the line to have the data injected
-            lineSplit[i] = `${firstPart}\`${data}\`${secondPart}`;
-            console.log(firstPart, secondPart)
-          } else if (lineSplit[i].includes('var trainLineCoords')) {
-            let firstP = lineSplit[i].indexOf('(');
-            let firstPart = lineSplit[i].slice(0, firstP + 1)
-            let secondPart = ');'
-            // modify the line to have the data injected
-            lineSplit[i] = `${firstPart}\`${stopData}\`${secondPart}`;
-            console.log(firstPart, secondPart)
+        if (html) {
+          let lineSplit = html.split('\n')
+          for (let i = 0; i < lineSplit.length; i++) {
+            lineSplit[i] = lineSplit[i].replace('■', '\\n');
           }
+          for (var i = 0; i < lineSplit.length; i++) {
+            if (lineSplit[i].includes('var trainLineShapes')) {
+              let firstP = lineSplit[i].indexOf('(');
+              let firstPart = lineSplit[i].slice(0, firstP + 1)
+              let secondPart = ');'
+              // modify the line to have the data injected
+              lineSplit[i] = `${firstPart}${JSON.stringify(shapeData)}${secondPart}`;
+              // console.log(firstPart, secondPart)
+            } else if (lineSplit[i].includes('let processedTrainStopData')) {
+              let firstP = lineSplit[i].indexOf('(');
+              let firstPart = lineSplit[i].slice(0, firstP + 1)
+              let secondPart = ');'
+              // modify the line to have the data injected
+              lineSplit[i] = `${firstPart}${JSON.stringify(stopData)}${secondPart}`;
+              // console.log(firstPart, secondPart)
+            }
+          }
+          setHtmlContent(lineSplit.join('\n').replace('■', '\n'))
+          setTimeout(updateWebView, 1000)
         }
-        // console.log(lineSplit.join('\n'))
-        setHtmlContent(lineSplit.join('\n'))
       })
       .catch((error) => {
+        // progress = ('Failed to get shapeData')
         console.log(error);
       });
   }
 
   useEffect(() => {
-    createDirectory(FileSystem.cacheDirectory + "google_transit")
-    const zipUrl = "http://web.mta.info/developers/data/nyct/subway/google_transit.zip";
-
-    isFileAsync(uri).then((isFile) => {
-      if (isFile) {
-        setHtmlContent("ZIP already downloaded")
-        console.log("ZIP file already downloaded");
-        setDownloaded(true);
-      } else {
-        setHtmlContent("Downloading zip...")
-        FileSystem.downloadAsync(zipUrl, uri)
-          .then(({ uri }) => {
-            console.log("Finished downloading to", uri);
-            setDownloaded(true);
-          })
-          .catch((error) => {
-            console.error(error);
-          });
-      }
-    });
-  }, []);
-
-  useEffect(() => {
-    if (downloaded) {
+    // if zip downloaded + html ready to render
+    // if (hasUnZipped && html != 'no html' && iconUriArr.length != 0) {
+    progress = `${hasUnZipped} ${html} ${htmlFile}`
+    if (hasUnZipped && html != 'no html' && iconData.length != 0) {
+      progress = "Running main"
       main()
     }
-  }, [downloaded]);
+  }, [hasUnZipped, html, iconData]);
 
   async function getLocation() {
+    // progress = ("Permission granted?")
     let { status } = await Location.requestForegroundPermissionsAsync();
+    // progress = (status)
     if (status !== 'granted') {
-      // setHtmlContent('Permission to access location was denied');
+      // progress = ('Permission to access location was denied');
       return;
     }
 
     let expoLocationData: LocationObject = await Location.getCurrentPositionAsync({});
+    // progress = (JSON.stringify(expoLocationData))
     // if (expoLocationData != null) {
     //   let coords = expoLocationData["coords"]
     //   let latlng = [coords["latitude"], coords["longitude"]]
     // }
-    setLocation(expoLocationData)
+    // setLocation(expoLocationData)
+    return expoLocationData
   };
 
   // For some reason we should use setInterval this way with async functions. I'm not sure why.
-  useEffect(() => {
-    const intervalId = setInterval(async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        // setHtmlContent('Permission to access location was denied');
-        return;
-      }
+  // useEffect(() => {
+  //   const intervalId = setInterval(getLocation, 1000);
 
-      let expoLocationData: LocationObject = await Location.getCurrentPositionAsync({});
-      setLocation(expoLocationData)
-    }, 1000);
+  //   // clear when component un mounts? Not sure
+  //   return () => clearInterval(intervalId);
+  // }, []);
 
-    // clear when component un mounts? Not sure
-    return () => clearInterval(intervalId);
-  }, []);
-
-  setInterval(async () => {
+  async function updateWebView() {
+    if (!(hasUnZipped && html != 'no html' && iconData)) {
+      return
+    }
+    let expoLocationData = await getLocation()
     var run = '';
-    // setHtmlContent(JSON.stringify(location))
-    if (location != null) {
-      let coords = location["coords"]
-      let nearbyStops = getNearbyStops(coords);
-      // setHtmlContent(String(nearbyStops))
+    // progress = (JSON.stringify(location))
+    if (expoLocationData != null) {
+      let coords = expoLocationData["coords"]
+      // progress = (String(nearbyStops))
       run = `
-        window.nearbyStops = [${nearbyStops}];
-        window.locationPos = [${coords["latitude"]}, ${coords["longitude"]}];
+        window.iconFileLocations = ${JSON.stringify(iconData)}
+        window.userLocation = [40.71775244918452, -73.9990371376651];
         true;
       `;
-      setHtmlContent(run)
+      setReRender("z")
       if (webref.current) {
         webref.current.injectJavaScript(run);
       }
     }
-  }, 3000);
+  }
+
+  setInterval(updateWebView, 10000);
 
   return <WebView originWhitelist={['*']} ref={webref} source={{ html: htmlContent }} style={{ flex: 1 }} />;
 };
@@ -263,6 +333,7 @@ const LeafletMap = () => {
 export default function HomeScreen() {
   const [draggableHeight, setDraggableHeight] = useState(Dimensions.get('window').height * 0.5);
   const [mapHeight, setMapHeight] = useState(Dimensions.get('window').height * 0.5);
+  const [p, setP] = useState('')
 
   useEffect(() => {
     setMapHeight(Dimensions.get('window').height - draggableHeight);
@@ -273,12 +344,17 @@ export default function HomeScreen() {
     setDraggableHeight(Dimensions.get('window').height * 0.2)
   }
 
+  setInterval(() => {
+    setP(progress)
+  }, 1000)
+
   return (
     <View>
       <View style={{ height: mapHeight }}>
         <LeafletMap />
       </View>
-      <DraggableContainer height={draggableHeight} setHeight={setDraggableHeight}></DraggableContainer>
+      <Text>{p}</Text>
+      {/* <DraggableContainer height={draggableHeight} setHeight={setDraggableHeight}></DraggableContainer> */}
     </View>
   );
 }

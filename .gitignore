@@ -1,8 +1,12 @@
 node_modules/
 .expo/
 dist/
-assets/google_transit
-assets/buses
+google_transit
+buses
+svg
+busSvgs
+android
+.idea
 %ProgramData%
 npm-debug.*
 *.jks
