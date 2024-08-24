@@ -1,10 +1,7 @@
 node_modules/
 .expo/
 dist/
-google_transit
-buses
 svg
-busSvgs
 android
 .idea
 %ProgramData%

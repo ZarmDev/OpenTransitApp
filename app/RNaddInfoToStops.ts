@@ -66,8 +66,59 @@ export async function addTrainLinesToStopsFile(stopData: string, shapeData: stri
     return "Success"
 }
 
-async function runThisFile() {
-    const shapeData = await FileSystem.readAsStringAsync("./assets/trains/google_transit/shapes.txt")
-    const stopData = await FileSystem.readAsStringAsync("./assets/trains/google_transit/stops.txt")
-    addTrainLinesToStopsFile(stopData, shapeData, "./assets/trains/google_transit/stop2.txt")
-}
+// async function runThisFile() {
+//     const shapeData = await FileSystem.readAsStringAsync("./assets/trains/google_transit/shapes.txt")
+//     const stopData = await FileSystem.readAsStringAsync("./assets/trains/google_transit/stops.txt")
+//     addTrainLinesToStopsFile(stopData, shapeData, "./assets/trains/google_transit/stop2.txt")
+// }
+
+// async function addTrainLinesToStopsFile(filePath: string, trainLines: any[]): Promise<void> {
+//     try {
+//         // Read the stops file asynchronously
+//         const fileInfo = await FileSystem.getInfoAsync(filePath);
+//         if (!fileInfo.exists) {
+//             throw new Error('Stops file does not exist');
+//         }
+
+//         const fileContent = await FileSystem.readAsStringAsync(filePath);
+//         let stops = JSON.parse(fileContent);
+
+//         // Process train lines and add them to stops
+//         for (let i = 0; i < trainLines.length; i++) {
+//             const trainLine = trainLines[i];
+//             // Assume processTrainLine is a function that processes each train line
+//             stops = await processTrainLine(stops, trainLine);
+
+//             // Yield control back to the main thread periodically
+//             if (i % 10 === 0) {
+//                 await new Promise(resolve => setTimeout(resolve, 0));
+//             }
+//         }
+
+//         // Write the updated stops back to the file asynchronously
+//         const updatedContent = JSON.stringify(stops);
+//         await FileSystem.writeAsStringAsync(filePath, updatedContent);
+
+//         console.log('Train lines added to stops file successfully');
+//     } catch (error) {
+//         console.error('Error adding train lines to stops file:', error);
+//     }
+// }
+
+// async function processTrainLine(stops: any[], trainLine: any): Promise<any[]> {
+//     // Simulate processing time
+//     await new Promise(resolve => setTimeout(resolve, 0));
+//     // Add train line to stops (example logic)
+//     stops.forEach(stop => {
+//         if (stop.id === trainLine.stopId) {
+//             stop.trainLines = stop.trainLines || [];
+//             stop.trainLines.push(trainLine);
+//         }
+//     });
+//     return stops;
+// }
+
+// // Example usage:
+// const filePath = targetPath + '/stops.txt';
+// const trainLines = [/* array of train lines */];
+// addTrainLinesToStopsFile(filePath, trainLines);

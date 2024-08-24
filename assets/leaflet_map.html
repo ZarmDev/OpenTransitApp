@@ -8,9 +8,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <!-- Used to test on the web -->
     <!-- <script src="./bundle.js"></script> -->
-    <script src="https://cdn.jsdelivr.net/gh/ZarmDev/transitHelper@latest/dist/bundle.js"></script>
     <!-- <script src="../scripts/out.js"></script> -->
+    <!-- <script src="../scripts/examples.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/gh/ZarmDev/transitHelper@experimental/dist/bundle.js"></script>
     <style>
         .custom-icon {
             position: relative;
@@ -37,8 +39,9 @@
     <input id="busApiKey" name="key" type="text">
     <div id="map"></div>
     <script>
-        window.userLocation = [40.71775244918452, -73.9990371376651]
-        // window.iconFileLocations = ['./1']
+        // Used to test on the web
+        // window.userLocation = [40.71775244918452, -73.9990371376651]
+        // window.iconFileLocations = getIconFileLocations()
         const testing = document.getElementById('testing')
         const ns = document.getElementById('ns')
         const busInput = document.getElementById('busApiKey')
@@ -58,11 +61,11 @@
         async function test() {
             var trainLineShapes = await getTrainLineShapes(outputShapes());
             // var trainLineCoords = await getAllTrainStopCoordinates(outputStops());
-            let processedTrainStopData = await processTrainStopData(outputTrainStops());
-            console.log(processedTrainStopData)
+            let allTrainStopCoordinates = await getAllTrainStopCoordinates(outputTrainStops());
+            // console.log(processedTrainStopData)
             // const distance = 0.004;
             const distance = 0.01;
-            var nearbyTrainLineCoords = await getNearbyStops(processedTrainStopData, window.userLocation, distance);
+            var nearbyTrainLineCoords = await getNearbyStops(allTrainStopCoordinates, window.userLocation, distance);
             const latSpan = "0.005";
             const lonSpan = "0";
             // const nearbyBusStopCoords = await getNearbyBusStops(exampleLocation, latSpan, lonSpan, busInput.value);
@@ -108,7 +111,7 @@
                     if (trainLines) {
                         let splitTrainLines = trainLines.split('-');
                         let iconHTML = '';
-                        const trainLinesWithIcons = ["1", "2", "3", "4", "5", "6", "7", "7d", "a", "b", "c", "d", "e", "f", "g", "h", "j", "l", "m", "n", "q", "r", "s", "sf", "sir", "sr", "w", "z"]
+                        const trainLinesWithIcons = ["1", "2", "3", "4", "5", "6", "7", "7d", "a", "b", "c", "d", "e", "f", "g", "h", "j", "l", "m", "n", "q", "r", "s", "sf", "sir", "sr", "w", "z"].map((item) => {return item.toUpperCase()})
                         for (var j = 0; j < splitTrainLines.length; j++) {
                             // let filepath = './images/svg/' + splitTrainLines[j] + '.svg';
                             // Basically, window.iconFileLocations is ordered the same with trainLinesWithIcons so just get the index of the train line based on the train lines which are found in stops.txt

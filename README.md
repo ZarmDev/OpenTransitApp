@@ -2,7 +2,9 @@
 A transit app for NYC.
 
 It was built for Cider and also to learn React Native.
+(the circle is just an example location)
 
+<video controls src="example.mp4" title="Title"></video>
 # What it uses
 - The transitHelper library (https://github.com/ZarmDev/transitHelper).
 - Openstreetmap data
@@ -13,10 +15,29 @@ It was built for Cider and also to learn React Native.
 All the unzip code is thanks to this github repo: (I couldn't figure it out for days because of the errors, so I love this repo)
 https://github.com/wodin/expo-zip-example/blob/main/App.js
 
-A lot of AI was used to debug and to create functions like DraggableContainer.
+A lot of AI was used btw
 
 Originally, I was trying to use the react-native-maps library but I really didn't want to pay Google Maps so
 thanks OpenStreetMaps!
+
+# How to run this?
+## Web
+Doesn't work because it uses native modules like react-native-zip-archive.
+## Android
+1. Clone the repo
+2. Run ```npx eas build --profile=development --platform=android``` to build the android folder
+To do this locally:
+- On Linux just add --local to the previous command (```npx eas build --profile=development --platform=android --local```) 
+- On Windows, run ```npx expo prebuild```, then, ```cd android```, and finally run ```./gradlew build```
+### Android - On a real android device
+When this finishes, move app/build/outputs/apk/debug or app/build/outputs/apk/release to the "Downloads" folder on your android tablet and then open the APK file on your android device. (Note: You need to allow apps from unknown sources. It should give you a message on how to do that if you try running the APK without adding that setting)
+### Android - On a emulator
+Not sure, will update later.
+## Apple
+Not sure, will update later.
+
+# Why dev build?
+https://github.com/mockingbot/react-native-zip-archive?tab=readme-ov-file#for-expo-users
 
 # Cider
 ✅Your app must be open-source, original, unique & built using either React Native or SwiftUI
@@ -31,10 +52,7 @@ thanks OpenStreetMaps!
 The app must be submitted by August 31st, 2024 to be considered for the grant.
 
 # NOTE FOR MYSELF
-npx eas build --profile=development --platform=android
-Or to do it locally, npx expo prebuild, cd android, ./gradlew build and move app/build/outputs/apk/debug or app/build/outputs/apk/release to Downloads and install on the device.
 **Instaling native modules require a new native build**
-https://egghead.io/lessons/react-native-create-a-development-build-for-android-with-eas
 https://stackoverflow.com/questions/41871519/leaflet-js-quickest-path-with-custom-points
 https://stackoverflow.com/questions/43167417/calculate-distance-between-two-points-in-leaflet
 # Performance optimizations (part 1)
