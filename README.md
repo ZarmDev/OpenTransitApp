@@ -4,7 +4,7 @@ A transit app for NYC.
 It was built for Cider and also to learn React Native.
 (the circle is just an example location)
 
-<video controls src="example.mp4" title="Title"></video>
+https://github.com/user-attachments/assets/1f0ac708-ebd4-4770-9491-4a5f7c80ac2a
 # What it uses
 - The transitHelper library (https://github.com/ZarmDev/transitHelper).
 - Openstreetmap data
