@@ -5,6 +5,8 @@ It was built for Cider and also to learn React Native.
 (the circle is just an example location)
 
 https://github.com/user-attachments/assets/1f0ac708-ebd4-4770-9491-4a5f7c80ac2a
+# Want to use it yourself?
+https://zarmdev.github.io/staticTransitApp/leaflet_map.html
 # What it uses
 - The transitHelper library (https://github.com/ZarmDev/transitHelper).
 - Openstreetmap data
