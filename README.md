@@ -3,10 +3,10 @@ A transit app for NYC.
 
 It was built for Cider and also to learn React Native.
 (the circle is just an example location)
-
+# Video
 https://github.com/user-attachments/assets/1f0ac708-ebd4-4770-9491-4a5f7c80ac2a
-# Want to use it yourself?
-https://zarmdev.github.io/staticTransitApp/leaflet_map.html
+# Try it out!
+https://github.com/ZarmDev/staticTransitApp/blob/main/README.md
 # What it uses
 - The transitHelper library (https://github.com/ZarmDev/transitHelper).
 - Openstreetmap data
