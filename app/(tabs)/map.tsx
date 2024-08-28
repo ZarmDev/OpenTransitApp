@@ -1,13 +1,9 @@
 import { Text, View, StyleSheet, Dimensions } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
-// import ServiceAlerts from '@/components/ServiceAlerts';
 import * as FileSystem from 'expo-file-system';
-// import { unzip } from 'react-native-zip-archive'
 import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
-// import { DraggableContainer } from '@/components/DraggableContainer';
 import { Asset, useAssets } from 'expo-asset';
-// import { addTrainLinesToStopsFile } from '../RNaddInfoToStops'
 import { ThemedText } from '@/components/ThemedText';
 
 // var bundleC = bundle.replace(/\δ/g, '$').replace(/\⒓/g, '{').replace(/\⇎/g, '`')

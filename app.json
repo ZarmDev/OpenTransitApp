@@ -4,14 +4,21 @@
     "slug": "TransitAppDebug",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/adaptive-icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "jsEngine": "hermes",
     "splash": {
-      "image": "./assets/images/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "light": {
+        "image": "./assets/images/splash.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#3d404cff"
+      },
+      "dark": {
+        "image": "./assets/images/splash-dark.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#3d404cff"
+      }
     },
     "ios": {
       "supportsTablet": true
@@ -19,7 +26,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#3d404cff"
       },
       "package": "com.ddev11.TransitAppDebug"
     },
