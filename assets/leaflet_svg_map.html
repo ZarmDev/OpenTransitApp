@@ -1,0 +1,235 @@
+<!-- key: ■ = newline -->
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Leaflet Map</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <!-- Used to test on the web -->
+    <script src="./bundle.js"></script>
+    <script src="./scripts/out.js"></script>
+    <!-- <script src="./scripts/svgout.js"></script> -->
+     <!-- <script src="./scripts/svgout2.js"></script> -->
+    <script src="./scripts/examples.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/gh/ZarmDev/transitHelper@experimental/dist/bundle.js"></script> -->
+    <style>
+        .custom-icon {
+            position: relative;
+        }
+
+        .custom-icon img {
+            position: absolute;
+        }
+
+        #map {
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            padding: 0;
+            margin: 0;
+        }
+
+        input {
+            width: 100vw;
+        }
+    </style>
+</head>
+
+<body>
+    <p>The stops are all saved locally on your device! However, the map itself and the train arrivals requries internet.
+    </p>
+    <p>Also, try clicking on the map to change location or try getting arrivals from one of the stops</p>
+    <!-- <label for="key">Bus api key</label>
+    <input id="busApiKey" name="key" type="text"> -->
+    <div id="map"></div>
+    <script>
+        // Used to test on the web
+        window.userLocation = [40.71775244918452, -73.9990371376651]
+        // window.iconFileLocations = getIconFileLocations()
+        const testing = document.getElementById('testing')
+        const busInput = document.getElementById('busApiKey')
+        var map = L.map('map').setView(window.userLocation, 5);
+        // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        //     attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+        //     maxZoom: 18,
+        // }).addTo(map);
+        var svgUrl = './images/nycmodified2.svg';
+        // var imageUrl = './images/nyc3.png'
+        var svgElement = document.createElement('img');
+        // svgElement.className = 'crop'
+        // svgElement.style = ``
+        svgElement.src = svgUrl
+        svgElement.style.width = '25%'
+        svgElement.style.height = '25%'
+        // svgElement.setAttribute('viewBox', "-100 -100 100 100")
+        // var svgElement = document.createElement("svg");
+        // // svgElement.className = 'crop';
+        // svgElement.setAttribute('viewBox', '0 0 10 10');
+        // svgElement.innerHTML = getNYCsvg();
+        var imageBounds = [[40.3, -74.5], [41.1, -73.45]];
+        function changeLat(num) {
+            imageBounds[0][0] += num;
+            imageBounds[1][0] += num;
+        }
+        function changeLong(num) {
+            imageBounds[0][1] += num;
+            imageBounds[1][1] += num;
+        }
+        changeLat(0.0255); // Increase -> Move down
+        changeLong(0.018); // Increase -> Move left
+        // var imageBounds = [[40.712216, -74.22655], [40.773941, -74.12544]];
+        L.svgOverlay(svgElement, imageBounds).addTo(map);
+        // L.imageOverlay(imageUrl, imageBounds).addTo(map);
+        var markerLayer = L.layerGroup().addTo(map);
+
+        map.on('click', function (e) {
+            // e.latlng contains the latitude and longitude of the click event
+            var latitude = e.latlng.lat;
+            var longitude = e.latlng.lng;
+            // console.log("Map clicked at Latitude: " + latitude + ", Longitude: " + longitude);
+            window.userLocation = [latitude, longitude]
+            test()
+            markerLayer.clearLayers();
+        });
+
+        // Check if geolocation is supported
+        // if (navigator.geolocation) {
+        //     // Request the user's location
+        //     navigator.geolocation.getCurrentPosition(
+        //         function (position) {
+        //             // Success callback
+        //             var latitude = position.coords.latitude;
+        //             var longitude = position.coords.longitude;
+        //             console.log("Latitude: " + latitude + ", Longitude: " + longitude);
+
+        //             window.userLocation = [latitude, longitude]
+
+        //             // You can now use userLocation object as needed
+        //         },
+        //         function (error) {
+        //             // Error callback
+        //             console.error("Error Code = " + error.code + " - " + error.message);
+        //         }
+        //     );
+        // } else {
+        //     console.error("Geolocation is not supported by this browser.");
+        // }
+        async function test() {
+            var trainLineShapes = await getTrainLineShapes(outputShapes());
+            // var trainLineCoords = await getAllTrainStopCoordinates(outputStops());
+            let allTrainStopCoordinates = await getAllTrainStopCoordinates(outputTrainStops());
+            // console.log(processedTrainStopData)
+            // const distance = 0.004;
+            const distance = 0.01;
+            var nearbyTrainLineCoords = await getNearbyStops(allTrainStopCoordinates, window.userLocation, distance);
+            // const latSpan = "0.005";
+            // const lonSpan = "0";
+            // const nearbyBusStopCoords = await getNearbyBusStops(exampleLocation, latSpan, lonSpan, busInput.value);
+            // var nearbyBusStopCoords = await getNearbyStops(processedBusStopData, exampleLocation, 0.004);
+            function renderTrainLineShapes() {
+                // Render train shapes
+                // console.log(trainLineShapes)
+                let TLSKeys = Object.keys(trainLineShapes);
+                let TLSVals = Object.values(trainLineShapes);
+                for (var i = 0; i < TLSKeys.length; i++) {
+                    // console.log(Object.keys(trainLineShapes)[i])
+                    // console.log(TLSKeys[i])
+                    let currObj = TLSVals[i]
+                    let latlngs = currObj["layers"];
+                    let color = currObj["color"]
+                    if (color == "") {
+                        color = 'black';
+                    }
+                    let test = [];
+                    for (var z = 0; z < latlngs.length; z += 2) {
+                        test.push(latlngs[z])
+                    }
+                    var polyline = L.polyline(test, { color: color, smoothFactor: '1.00' }).addTo(map);
+                    map.addLayer(polyline);
+                    // map.fitBounds(polyline.getBounds());
+                }
+            }
+
+            function renderMarkers(providedCoords) {
+                // Render train coordinates
+                let tLCVals = Object.values(providedCoords)
+                let tlcKeys = Object.keys(providedCoords)
+                // Last value is null
+                for (var i = 0; i < tLCVals.length; i++) {
+                    // console.log(tLCVals[i])
+                    let latlng = tLCVals[i]["coordinates"];
+                    let stopname = tLCVals[i]["stopname"]
+                    let stopID = tlcKeys[i]
+                    let trainLines = tLCVals[i]["trainLine"]
+                    stopID = stopID.slice(0, stopID.length - 1)
+                    // let marker = L.marker(latlng).addTo(map);
+                    // continue
+                    if (trainLines) {
+                        let splitTrainLines = trainLines.split('-');
+                        let iconHTML = '';
+                        const trainLinesWithIcons = ["1", "2", "3", "4", "5", "6", "7", "7d", "a", "b", "c", "d", "e", "f", "g", "h", "j", "l", "m", "n", "q", "r", "s", "sf", "sir", "sr", "w", "z"].map((item) => { return item.toUpperCase() })
+                        for (var j = 0; j < splitTrainLines.length; j++) {
+                            // let filepath = './images/svg/' + splitTrainLines[j] + '.svg';
+                            // Basically, window.iconFileLocations is ordered the same with trainLinesWithIcons so just get the index of the train line based on the train lines which are found in stops.txt
+                            let filepath = window.iconFileLocations[trainLinesWithIcons.indexOf(splitTrainLines[j])]
+                            // iconHTML += '<img src="' + filepath + '/' + splitTrainLines[j] + '.svg"' + ' style="position: absolute; width: 20px; height: 20px; left: ' + j * 20 + 'px;">';
+                            iconHTML += '<img src="' + filepath + '" style="position: absolute; width: 20px; height: 20px; left: ' + j * 20 + 'px;">';
+                            // console.log('<img src="' + filepath + ' style="position: absolute; width: 20px; height: 20px; left: ' + j * 20 + 'px;">')
+                        }
+                        var customIcon = L.divIcon({
+                            className: 'custom-icon',
+                            // Doing this because if you use a tick backslash it will break it in webviewcontent.js
+                            html: [
+                                '<div style="position: relative; width: 40px; height: 20px;">',
+                                String(iconHTML),
+                                '<div style="position: absolute; top: 20px; left: 0; width: 100%; text-align: center; font-size: 12px;">',
+                                String(stopname),
+                                '</div>',
+                                '</div>'].join('\n'),
+                            iconSize: [5, 5] // Adjust the size as needed
+                        });
+                        let marker = L.marker(latlng, { icon: customIcon }).addTo(markerLayer);
+                        // doesn't matter which train line - they are all grouped together
+                        let trainLine = trainLines[0];
+                        marker.on('click', async function (stopID, stopname, trainLine) {
+                            const targetStopID = stopID
+                            const direction = ""
+                            const date = Date.now()
+                            const realtime = await getTrainArrivals(trainLine, targetStopID, date, direction);
+                            console.log(realtime)
+                            alert(JSON.stringify(realtime))
+                        }.bind(null, stopID, stopname, trainLine));
+                    } else {
+                        // console.log(stopname)
+                        var busIcon = L.icon({
+                            iconUrl: './busSvgs/' + 'Bx1' + '.svg',
+                            iconSize: [0, 0],
+                            iconAnchor: [22, 94],
+                            popupAnchor: [-3, -76],
+                            // shadowUrl: 'my-icon-shadow.png',
+                            // shadowSize: [68, 95],
+                            // shadowAnchor: [22, 94]
+                        });
+                        marker = L.marker(latlng, { icon: busIcon }).addTo(markerLayer);
+                    }
+                    // marker.bindTooltip(stopname)
+                }
+            }
+
+            renderTrainLineShapes();
+            renderMarkers(nearbyTrainLineCoords);
+            // renderMarkers(nearbyBusStopCoords);
+            L.circle(window.userLocation, { radius: 200 }).addTo(markerLayer);
+        }
+
+        // busInput.addEventListener('change', async () => {
+        //     test();
+        // })
+        setTimeout(test, 500)
+    </script>
+</body>
+
+</html>

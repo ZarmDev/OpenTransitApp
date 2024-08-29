@@ -29,8 +29,11 @@ Hasn't been working either.
 1. Clone the repo
 2. Build the app
 **On the cloud (steal expo's electricity)**
+Follow the instructions here: (https://docs.expo.dev/build/setup/)
 
-Run ```npx eas build --profile=development --platform=android``` to build the android folder
+or the instructions here (better explanations): https://egghead.io/courses/build-and-deploy-react-native-apps-with-expo-eas-85ab521e
+
+Note for me: ```npx eas build --profile=development --platform=android``` to build the android folder
 
 **Locally (uses up your own electricity)**
 
@@ -62,15 +65,15 @@ Originally because of https://github.com/mockingbot/react-native-zip-archive?tab
 ✅The app should solve a real problem or add significant value to the users' lives. Describe how the app will impact its users and what specific issues it addresses.
 (It will help people get around NYC without having to deal with paywalls and while saving battery life)
 
-❌The app should have at least five unique screens (e.g., home, profile, settings, notifications, and a feature-specific screen).
+✅The app should have at least five unique screens (e.g., home, profile, settings, notifications, and a feature-specific screen).
 
-❌The app must include at least three core features that work together to create a cohesive experience. For example, a social network app could include user profiles, a news feed, and direct messaging. (It will have offline maps, arrival times on the bottom and online maps, service alerts, etc)
+❌The app must include at least three core features that work together to create a cohesive experience. For example, a social network app could include user profiles, a news feed, and direct messaging. (Offline maps, location features, arrival times on the bottom and online maps, service alerts, etc)
 
 ✅The app must have some sort of data management system, using either local storage, cloud databases, or APIs. (it uses MTA api's and also might use storage in the future)
 
 ❔The app could involve integrating with external APIs, or using advanced features of React Native or SwiftUI. (?)
 
-❌The app should have a clean, user-friendly design that is easy to navigate and visually appealing.
+✅The app should have a clean, user-friendly design that is easy to navigate and visually appealing (totally).
 
 The app must be submitted by August 31st, 2024 to be considered for the grant.
 
