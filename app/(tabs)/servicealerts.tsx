@@ -20,6 +20,10 @@ export default function ServiceAlerts() {
         result.push(<ThemedText key={`line-${i}`} style={styles.bold}>{text[i]["descriptionText"]}</ThemedText>);
       }
     }
+    if (result.length == 0) {
+      setServiceAlerts([<ThemedText style={styles.header}>There are no current delays.</ThemedText>])
+      return
+    }
     setServiceAlerts(result)
   }
 
@@ -39,10 +43,10 @@ const styles = StyleSheet.create({
     fontSize: 24
   },
   header: {
-      fontSize: 16,
-      // fontWeight: 'bold',
+    fontSize: 16,
+    // fontWeight: 'bold',
   },
   bold: {
-     
+
   },
 });

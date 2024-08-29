@@ -9,16 +9,9 @@
     "userInterfaceStyle": "automatic",
     "jsEngine": "hermes",
     "splash": {
-      "light": {
         "image": "./assets/images/splash.png",
         "resizeMode": "contain",
         "backgroundColor": "#3d404c"
-      },
-      "dark": {
-        "image": "./assets/images/splash-dark.png",
-        "resizeMode": "contain",
-        "backgroundColor": "#3d404c"
-      }
     },
     "ios": {
       "supportsTablet": true

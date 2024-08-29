@@ -28,6 +28,7 @@ interface LocationObject {
 var shapeData: string[] = [];
 var stopData: string[] = [];
 var progress = ''
+var isFirstRender = false;
 
 // thanks AI
 // function distance(lat : Number, long : Number) {
@@ -236,11 +237,18 @@ const LeafletMap = () => {
     if (expoLocationData != null) {
       let coords = expoLocationData["coords"]
       // progress = (String(nearbyStops))
-      run = `
-        window.iconFileLocations = ${JSON.stringify(iconData)}
-        window.userLocation = [${coords["latitude"]}, ${coords["longitude"]}];
-        true;
-      `;
+      if (isFirstRender) {
+        run = `
+          window.iconFileLocations = ${JSON.stringify(iconData)}
+          window.userLocation = [${coords["latitude"]}, ${coords["longitude"]}];
+          true;
+        `;
+      } else {
+        run = `
+          window.userLocation = [${coords["latitude"]}, ${coords["longitude"]}];
+          true;
+        `;
+      }
       setReRender("z")
       if (webref.current) {
         webref.current.injectJavaScript(run);

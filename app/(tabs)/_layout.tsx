@@ -33,20 +33,20 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="svgmap"
+        name="imgmap"
         options={{
-          title: 'SVG map',
+          title: 'IMG map',
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon name={focused ? 'map' : 'map-outline'} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="imgmap"
+        name="settings"
         options={{
-          title: 'IMG map',
+          title: 'Settings',
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'map' : 'map-outline'} color={color} />
+            <TabBarIcon name={focused ? 'settings' : 'settings-outline'} color={color} />
           ),
         }}
       />

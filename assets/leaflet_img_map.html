@@ -9,12 +9,12 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <!-- Used to test on the web -->
-    <script src="./bundle.js"></script>
-    <script src="./scripts/out.js"></script>
+    <!-- <script src="./bundle.js"></script> -->
+    <!-- <script src="./scripts/out.js"></script> -->
     <!-- <script src="./scripts/svgout.js"></script> -->
      <!-- <script src="./scripts/svgout2.js"></script> -->
-    <script src="./scripts/examples.js"></script>
-    <!-- <script src="https://cdn.jsdelivr.net/gh/ZarmDev/transitHelper@experimental/dist/bundle.js"></script> -->
+    <!-- <script src="./scripts/examples.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/gh/ZarmDev/transitHelper@experimental/dist/bundle.js"></script>
     <style>
         .custom-icon {
             position: relative;
@@ -47,12 +47,13 @@
     <div id="map"></div>
     <script>
         // Used to test on the web
-        window.userLocation = [40.71775244918452, -73.9990371376651]
+        // window.userLocation = [40.71775244918452, -73.9990371376651]
         // window.iconFileLocations = getIconFileLocations()
         const testing = document.getElementById('testing')
         const busInput = document.getElementById('busApiKey')
         var map = L.map('map').setView(window.userLocation, 5);
-        var imageUrl = './images/nyc3.png'
+        var imageUrl = './images/icon.png'
+        // var imageUrl = window.mapImageData
         var imageBounds = [[40.3, -74.5], [41.1, -73.45]];
         function changeLat(num) {
             imageBounds[0][0] += num;
@@ -65,9 +66,17 @@
         changeLat(0.0255); // Increase -> Move down
         changeLong(0.018); // Increase -> Move left
         // var imageBounds = [[40.712216, -74.22655], [40.773941, -74.12544]];
-        L.imageOverlay(imageUrl, imageBounds).addTo(map);
+        // L.imageOverlay(imageUrl, imageBounds).addTo(map);
         // L.imageOverlay(imageUrl, imageBounds).addTo(map);
         var markerLayer = L.layerGroup().addTo(map);
+
+        // Lazy load the image overlay
+        // function loadImageOverlay() {
+        //     L.imageOverlay(imageUrl, imageBounds).addTo(map);
+        // }
+
+        // Load the image overlay when the map is ready
+        map.on('load', loadImageOverlay);
 
         map.on('click', function (e) {
             // e.latlng contains the latitude and longitude of the click event
@@ -172,7 +181,7 @@
                                 '<div style="position: absolute; top: 20px; left: 0; width: 100%; text-align: center; font-size: 12px;">',
                                 String(stopname),
                                 '</div>',
-                                '</div>'].join('\n'),
+                                '</div>'].join('■'),
                             iconSize: [5, 5] // Adjust the size as needed
                         });
                         let marker = L.marker(latlng, { icon: customIcon }).addTo(markerLayer);

@@ -65,7 +65,7 @@ Originally because of https://github.com/mockingbot/react-native-zip-archive?tab
 ✅The app should solve a real problem or add significant value to the users' lives. Describe how the app will impact its users and what specific issues it addresses.
 (It will help people get around NYC without having to deal with paywalls and while saving battery life)
 
-✅The app should have at least five unique screens (e.g., home, profile, settings, notifications, and a feature-specific screen).
+❌The app should have at least five unique screens (e.g., home, profile, settings, notifications, and a feature-specific screen).
 
 ❌The app must include at least three core features that work together to create a cohesive experience. For example, a social network app could include user profiles, a news feed, and direct messaging. (Offline maps, location features, arrival times on the bottom and online maps, service alerts, etc)
 
