@@ -28,6 +28,7 @@ Hasn't been working either.
 ## Android (Dev build)
 1. Clone the repo
 2. Build the app
+
 **On the cloud (steal expo's electricity)**
 Follow the instructions here: (https://docs.expo.dev/build/setup/)
 

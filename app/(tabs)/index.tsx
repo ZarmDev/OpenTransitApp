@@ -28,7 +28,7 @@ interface LocationObject {
 var shapeData: string[] = [];
 var stopData: string[] = [];
 var progress = ''
-var isFirstRender = false;
+var isFirstRender = true;
 
 // thanks AI
 // function distance(lat : Number, long : Number) {
@@ -243,6 +243,7 @@ const LeafletMap = () => {
           window.userLocation = [${coords["latitude"]}, ${coords["longitude"]}];
           true;
         `;
+        isFirstRender = false;
       } else {
         run = `
           window.userLocation = [${coords["latitude"]}, ${coords["longitude"]}];
@@ -262,18 +263,12 @@ const LeafletMap = () => {
 };
 
 export default function HomeScreen() {
-  const [draggableHeight, setDraggableHeight] = useState(Dimensions.get('window').height * 0.5);
   const [mapHeight, setMapHeight] = useState(Dimensions.get('window').height * 0.5);
   const [p, setP] = useState('')
 
   useEffect(() => {
-    setMapHeight(Dimensions.get('window').height - draggableHeight);
-  }, [draggableHeight]);
-
-  function handleTapOutsideView() {
-    // console.log(draggableHeight, 'dh')
-    setDraggableHeight(Dimensions.get('window').height * 0.2)
-  }
+    setMapHeight(Dimensions.get('window').height);
+  });
 
   setInterval(() => {
     setP(progress)

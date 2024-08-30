@@ -10,11 +10,11 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <!-- Used to test on the web -->
     <!-- <script src="./bundle.js"></script> -->
-    <!-- <script src="./scripts/out.js"></script> -->
+    <!-- <script src="../scripts/out.js"></script> -->
     <!-- <script src="./scripts/svgout.js"></script> -->
-     <!-- <script src="./scripts/svgout2.js"></script> -->
-    <!-- <script src="./scripts/examples.js"></script> -->
-    <script src="https://cdn.jsdelivr.net/gh/ZarmDev/transitHelper@experimental/dist/bundle.js"></script>
+    <!-- <script src="./scripts/svgout2.js"></script> -->
+    <!-- <script src="../scripts/examples.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/gh/ZarmDev/transitHelper@latest/dist/bundle.js"></script>
     <style>
         .custom-icon {
             position: relative;
@@ -39,6 +39,7 @@
 </head>
 
 <body>
+    <p id="status">Status</p>
     <p>The stops are all saved locally on your device! However, the map itself and the train arrivals requries internet.
     </p>
     <p>Also, try clicking on the map to change location or try getting arrivals from one of the stops</p>
@@ -46,71 +47,49 @@
     <input id="busApiKey" name="key" type="text"> -->
     <div id="map"></div>
     <script>
+        const status = document.getElementById('status')
         // Used to test on the web
         // window.userLocation = [40.71775244918452, -73.9990371376651]
         // window.iconFileLocations = getIconFileLocations()
-        const testing = document.getElementById('testing')
+        // window.mapImageData = './images/nyc3.png'
         const busInput = document.getElementById('busApiKey')
-        var map = L.map('map').setView(window.userLocation, 5);
-        var imageUrl = './images/icon.png'
-        // var imageUrl = window.mapImageData
-        var imageBounds = [[40.3, -74.5], [41.1, -73.45]];
-        function changeLat(num) {
-            imageBounds[0][0] += num;
-            imageBounds[1][0] += num;
-        }
-        function changeLong(num) {
-            imageBounds[0][1] += num;
-            imageBounds[1][1] += num;
-        }
-        changeLat(0.0255); // Increase -> Move down
-        changeLong(0.018); // Increase -> Move left
-        // var imageBounds = [[40.712216, -74.22655], [40.773941, -74.12544]];
-        // L.imageOverlay(imageUrl, imageBounds).addTo(map);
-        // L.imageOverlay(imageUrl, imageBounds).addTo(map);
-        var markerLayer = L.layerGroup().addTo(map);
-
-        // Lazy load the image overlay
-        // function loadImageOverlay() {
-        //     L.imageOverlay(imageUrl, imageBounds).addTo(map);
-        // }
-
-        // Load the image overlay when the map is ready
-        map.on('load', loadImageOverlay);
-
-        map.on('click', function (e) {
-            // e.latlng contains the latitude and longitude of the click event
-            var latitude = e.latlng.lat;
-            var longitude = e.latlng.lng;
-            // console.log("Map clicked at Latitude: " + latitude + ", Longitude: " + longitude);
-            window.userLocation = [latitude, longitude]
-            test()
-            markerLayer.clearLayers();
-        });
-
-        // Check if geolocation is supported
-        // if (navigator.geolocation) {
-        //     // Request the user's location
-        //     navigator.geolocation.getCurrentPosition(
-        //         function (position) {
-        //             // Success callback
-        //             var latitude = position.coords.latitude;
-        //             var longitude = position.coords.longitude;
-        //             console.log("Latitude: " + latitude + ", Longitude: " + longitude);
-
-        //             window.userLocation = [latitude, longitude]
-
-        //             // You can now use userLocation object as needed
-        //         },
-        //         function (error) {
-        //             // Error callback
-        //             console.error("Error Code = " + error.code + " - " + error.message);
-        //         }
-        //     );
-        // } else {
-        //     console.error("Geolocation is not supported by this browser.");
-        // }
+        const imgTest = document.getElementById('imgTest')
+        var map = L.map('map')
+        // imgTest.src = 'data:image/png;base64,' + window.mapImageData
         async function test() {
+            // var imageUrl = './images/icon.png'
+            var imageBounds = [[40.3, -74.5], [41.1, -73.45]];
+            function changeLat(num) {
+                imageBounds[0][0] += num;
+                imageBounds[1][0] += num;
+            }
+            function changeLong(num) {
+                imageBounds[0][1] += num;
+                imageBounds[1][1] += num;
+            }
+            // changeLat(0.0255); // Increase -> Move down
+            // changeLong(0.018); // Increase -> Move left
+            // var imageBounds = [[40.712216, -74.22655], [40.773941, -74.12544]];
+            // L.imageOverlay(imageUrl, imageBounds).addTo(map);
+            // L.imageOverlay(imageUrl, imageBounds).addTo(map);
+            var markerLayer = L.layerGroup().addTo(map);
+
+            L.imageOverlay('https://cdn.jsdelivr.net/gh/ZarmDev/staticTransitApp@latest/images/nyc3.png', imageBounds).addTo(map);
+            map.fitBounds(imageBounds);
+
+            // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            //     attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+            // }).addTo(map);
+
+            map.on('click', function (e) {
+                // e.latlng contains the latitude and longitude of the click event
+                var latitude = e.latlng.lat;
+                var longitude = e.latlng.lng;
+                // console.log("Map clicked at Latitude: " + latitude + ", Longitude: " + longitude);
+                window.userLocation = [latitude, longitude]
+                test()
+                markerLayer.clearLayers();
+            });
             var trainLineShapes = await getTrainLineShapes(outputShapes());
             // var trainLineCoords = await getAllTrainStopCoordinates(outputStops());
             let allTrainStopCoordinates = await getAllTrainStopCoordinates(outputTrainStops());
@@ -221,7 +200,36 @@
         // busInput.addEventListener('change', async () => {
         //     test();
         // })
-        setTimeout(test, 500)
+        // setTimeout(test, 500)
+        // var waitForData = setInterval(() => {
+        //     // var check = true;
+        //     // for (var i = 0; i < 20; i++) {
+        //     //     var currentPart = window["mapImageData" + String(i)];
+        //     //     // Check if the data exists
+        //     //     status.innerText = typeof currentPart
+        //     //     if (typeof currentPart === 'undefined') {
+        //     //         check = false;
+        //     //         break;
+        //     //     }
+        //     // }
+        //     status.innerText = typeof window.mapImageData
+        //     if (typeof window.mapImageData != 'undefined') {
+        //         test()
+        //         clearInterval(waitForData)
+        //     }
+        //     // if (check) {
+        //     //     clearInterval(waitForData);
+        //     //     status.innerText = 'Rendering image'
+        //     //     var allParts = ''
+        //     //     for (var i = 0; i < 20; i++) {
+        //     //         // if that data doesn't exists, then set check to false
+        //     //         allParts += window[currentPart]
+        //     //     }
+        //     //     window.mapImageData = allParts;
+        //     //     test()
+        //     // }
+        // }, 100)
+        test()
     </script>
 </body>
 

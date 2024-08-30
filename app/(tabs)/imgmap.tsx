@@ -28,7 +28,7 @@ interface LocationObject {
 var shapeData: string[] = [];
 var stopData: string[] = [];
 var progress = ''
-var isFirstRender = false;
+var isFirstRender = true;
 
 // thanks AI
 // function distance(lat : Number, long : Number) {
@@ -37,7 +37,7 @@ var isFirstRender = false;
 //   return Math.sqrt(latDiff * latDiff + lonDiff * lonDiff);
 // }
 
-export default function ImgMap() {
+function ImgMap() {
   // var htmlContent = assets ? assets : null;
   const [htmlContent, setHtmlContent] = useState(``);
   // AI (<LocationObject | null>(null); <- what???)
@@ -125,22 +125,22 @@ export default function ImgMap() {
   }, [iconAssets, html])
 
   async function getImgFile() {
-    if (imgFile && html != 'no html') {
-        if (imgFile[0]) {
-          let localU = imgFile[0].localUri;
-          if (localU) {
-            const fileContents = await FileSystem.readAsStringAsync(localU, {
-              encoding: FileSystem.EncodingType.Base64,
-            })
-            setImgData(`data:image/svg+xml;base64,${fileContents}`);
-          }
+    if (imgFile) {
+      if (imgFile[0]) {
+        let localU = imgFile[0].localUri;
+        if (localU) {
+          const fileContents = await FileSystem.readAsStringAsync(localU, {
+            encoding: FileSystem.EncodingType.Base64,
+          })
+          setImgData(`data:image/png;base64,${fileContents}`);
+        }
       }
     }
   }
 
   useEffect(() => {
     if (imgFile) {
-      getImgFile()
+      // getImgFile()
     }
   }, [imgFile])
 
@@ -186,17 +186,36 @@ export default function ImgMap() {
                   // modify the line to have the data injected
                   lineSplit[i] = `${firstPart}${JSON.stringify(stopData)}${secondPart}`;
                   // console.log(firstPart, secondPart)
-                }
+                } 
+                // else if (lineSplit[i].includes('var imageUrl =')) {
+                //   let firstP = lineSplit[i].indexOf("'");
+                //   let firstPart = lineSplit[i].slice(0, firstP + 1)
+                //   let secondPart = "'"
+                //   // modify the line to have the data injected
+                //   lineSplit[i] = `${firstPart}${imgData}${secondPart}`;
+                //   // console.log(firstPart, secondPart)
+                // }
               }
               // progress = `${shapeData.slice(0, 10)}, ${stopData.slice(0, 10)}`
               setHtmlContent(lineSplit.join('\n').replace('■', '\n'))
-              updateWebView()
-              // progress= "Updated web view"
-              // if (bundleFile && bundleFile[0].localUri) {
-              //   let localBundleUri = bundleFile[0].localUri;
-              //   const bundle = await FileSystem.readAsStringAsync(localBundleUri)
-              //   progress = bundle.slice(0, 100)
-              // }
+              await updateWebView()
+              // setTimeout(function () {
+              //   var i = 0;
+              //   const max = 1000;
+              //   const imgParts = splitStringIntoParts(imgData, max);
+              //   var addPartsOfImg = setInterval(() => {
+              //     var run = `window.mapImageData${i} = \`${imgParts[i]}\``;
+              //     progress = `Adding mapImageData${i}`
+              //     if (webref.current) {
+              //       webref.current.injectJavaScript(run);
+              //     }
+              //     if (i >= max) {
+              //       clearInterval(addPartsOfImg)
+              //     }
+              //     i++;
+              //   }, 100)
+              // }, 1500)
+              progress = "Updated web view"
             }
           })
           .catch((error) => {
@@ -213,11 +232,11 @@ export default function ImgMap() {
     // if zip downloaded + html ready to render
     // if (hasUnZipped && html != 'no html' && iconUriArr.length != 0) {
     // progress = `${hasUnZipped} ${html} ${htmlFile}`
-    if (html != 'no html' && iconData.length != 0 && stopFile && shapeFile && imgData != '') {
+    if (html != 'no html' && iconData.length != 0 && stopFile && shapeFile) {
       // progress = "Running main"
       main()
     }
-  }, [html, iconData, stopFile, shapeFile, imgData]);
+  }, [html, iconData, stopFile, shapeFile]);
 
 
   async function getLocation() {
@@ -262,9 +281,9 @@ export default function ImgMap() {
         run = `
           window.iconFileLocations = ${JSON.stringify(iconData)}
           window.userLocation = [${coords["latitude"]}, ${coords["longitude"]}];
-          window.mapImageData = \`${imgData}\`
           true;
         `;
+        isFirstRender = false;
       } else {
         run = `
           window.userLocation = [${coords["latitude"]}, ${coords["longitude"]}];
@@ -282,3 +301,22 @@ export default function ImgMap() {
 
   return <WebView originWhitelist={['*']} ref={webref} source={{ html: htmlContent }} style={{ flex: 1 }} />;
 };
+
+export default function ImgMapScreen() {
+  const [p, setP] = useState('')
+
+  setInterval(() => {
+    setP(progress)
+  }, 1000)
+
+  return (
+    <View>
+      <ThemedText>Brooooooooooo</ThemedText>
+      <View style={{ height: Dimensions.get('window').height * 0.5 }}>
+        <ImgMap />
+      </View>
+      <ThemedText>{p}</ThemedText>
+      {/* <DraggableContainer height={draggableHeight} setHeight={setDraggableHeight}></DraggableContainer> */}
+    </View>
+  );
+}
