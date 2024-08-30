@@ -50,14 +50,7 @@
             attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
             maxZoom: 18,
         }).addTo(map);
-
-        setInterval(() => {
-            // testing.innerText = window.userLocation
-            // ns.innerText = window.iconFileLocations[0].slice(0, 100)
-            // if (window.userLocation != null && map != null) {
-            //     map.setView(window.userLocation, 26);
-            // }
-        }, 1000)
+        
         async function test() {
             var trainLineShapes = await getTrainLineShapes(outputShapes());
             // var trainLineCoords = await getAllTrainStopCoordinates(outputStops());
@@ -166,10 +159,14 @@
             L.circle(window.userLocation, { radius: 200 }).addTo(map);
         }
 
-        busInput.addEventListener('change', async () => {
-            test();
+        // busInput.addEventListener('change', async () => {
+        //     test();
+        // })
+        setInterval(() => {
+            if (typeof window.iconFileLocations != undefined && typeof window.userLocation != undefined) {
+                test()
+            }
         })
-        setTimeout(test, 500)
     </script>
 </body>
 

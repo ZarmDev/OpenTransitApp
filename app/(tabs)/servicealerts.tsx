@@ -13,6 +13,9 @@ export default function ServiceAlerts() {
     // Help from AI
     const result: JSX.Element[] = [];
     for (var i = 0; i < trainLines.length; i++) {
+      if (text[i]) {
+        result.push(<ThemedText style={styles.header}>{trainLines[i]} train:</ThemedText>)
+      }
       if (text[i]["headerText"]) {
         result.push(<ThemedText key={`header-${i}`} style={styles.header}>{text[i]["headerText"]}</ThemedText>);
       }
@@ -43,10 +46,11 @@ const styles = StyleSheet.create({
     fontSize: 24
   },
   header: {
-    fontSize: 16,
-    // fontWeight: 'bold',
+    fontSize: 20,
+    fontWeight: 'bold',
   },
   bold: {
-
+    fontSize: 16,
+    marginBottom: 10
   },
 });

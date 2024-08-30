@@ -9,9 +9,9 @@
     "userInterfaceStyle": "automatic",
     "jsEngine": "hermes",
     "splash": {
-        "image": "./assets/images/splash.png",
-        "resizeMode": "contain",
-        "backgroundColor": "#3d404c"
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#3d404c"
     },
     "ios": {
       "supportsTablet": true
@@ -30,6 +30,7 @@
     },
     "plugins": [
       "expo-router",
+      "@maplibre/maplibre-react-native",
       [
         "expo-asset",
         {
@@ -43,7 +44,12 @@
       "assets/**"
     ],
     "packagerOpts": {
-      "assetExts": ["html", "css", "js", "txt"]
+      "assetExts": [
+        "html",
+        "css",
+        "js",
+        "txt"
+      ]
     },
     "experiments": {
       "typedRoutes": true

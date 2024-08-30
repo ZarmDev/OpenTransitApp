@@ -64,7 +64,7 @@ export async function getTrainServiceAlerts(inHTMLFormat : boolean, shouldInclud
                             if (routeId) {
                                 var descriptionText = null
                                 if (descriptionTranslation != null) {
-                                    descriptionText = descriptionTranslation[1]["text"]
+                                    descriptionText = descriptionTranslation[Number(inHTMLFormat)]["text"]
                                 }
                                 trainAlerts[routeId] = { "headerText": headerText, "descriptionText": descriptionText }
                                 // for (var i = 0; i < routesAffected.length; i++) {
