@@ -2,9 +2,8 @@
 A transit app for NYC.
 
 It was built for Cider and also to learn React Native.
-(the circle is just an example location)
 # Video
-https://github.com/user-attachments/assets/1f0ac708-ebd4-4770-9491-4a5f7c80ac2a
+https://github.com/user-attachments/assets/86647b7b-6113-4001-814d-fe81b15e22c6
 # Try it out!
 https://github.com/ZarmDev/staticTransitApp/blob/main/README.md
 # What it uses

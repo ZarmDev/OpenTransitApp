@@ -29,10 +29,6 @@ var shapeData: string[] = [];
 var stopData: string[] = [];
 var progress = ''
 var isFirstRender = true;
-var shouldInsertDataLocalVar: boolean | null = null;
-var htmlContent = ''
-var iconData = ''
-const htmlFileUri = FileSystem.cacheDirectory + 'leaflet_map.html'
 
 // thanks AI
 // function distance(lat : Number, long : Number) {
@@ -41,12 +37,52 @@ const htmlFileUri = FileSystem.cacheDirectory + 'leaflet_map.html'
 //   return Math.sqrt(latDiff * latDiff + lonDiff * lonDiff);
 // }
 
-const GenerateLeafletMap = () => {
-  const [htmlFile, err] = useAssets(require('../../assets/leaflet_map.html'))
+function ImgMap() {
+  // var htmlContent = assets ? assets : null;
+  const [htmlContent, setHtmlContent] = useState(``);
+  // AI (<LocationObject | null>(null); <- what???)
+  // const [location, setLocation] = useState<LocationObject | null>(null);
+  const [htmlFile, err] = useAssets(require('../../assets/leaflet_img_map.html'))
   const [html, setHtml] = useState("no html");
+  const [reRender, setReRender] = useState("");
+  // !!! Generate the require statements using scripts/generateIconFilePaths.js
+  const [iconAssets, err2] = useAssets([require('../../assets/images/svg/1.svg'),
+  require('../../assets/images/svg/2.svg'),
+  require('../../assets/images/svg/3.svg'),
+  require('../../assets/images/svg/4.svg'),
+  require('../../assets/images/svg/5.svg'),
+  require('../../assets/images/svg/6.svg'),
+  require('../../assets/images/svg/7.svg'),
+  require('../../assets/images/svg/7d.svg'),
+  require('../../assets/images/svg/a.svg'),
+  require('../../assets/images/svg/b.svg'),
+  require('../../assets/images/svg/c.svg'),
+  require('../../assets/images/svg/d.svg'),
+  require('../../assets/images/svg/e.svg'),
+  require('../../assets/images/svg/f.svg'),
+  require('../../assets/images/svg/g.svg'),
+  require('../../assets/images/svg/h.svg'),
+  require('../../assets/images/svg/j.svg'),
+  require('../../assets/images/svg/l.svg'),
+  require('../../assets/images/svg/m.svg'),
+  require('../../assets/images/svg/n.svg'),
+  require('../../assets/images/svg/q.svg'),
+  require('../../assets/images/svg/r.svg'),
+  require('../../assets/images/svg/s.svg'),
+  require('../../assets/images/svg/sf.svg'),
+  require('../../assets/images/svg/sir.svg'),
+  require('../../assets/images/svg/sr.svg'),
+  require('../../assets/images/svg/w.svg'),
+  require('../../assets/images/svg/z.svg'),
+  ]);
   const [stopFile, err3] = useAssets(require('../../assets/trains/google_transit/stops2.txt'))
   const [shapeFile, err4] = useAssets(require('../../assets/trains/google_transit/shapes.txt'))
-  // const [bundleFile, err5] = useAssets(require('../../assets/bundle'))
+
+  const [imgFile, err5] = useAssets(require('../../assets/images/nyc3.png'))
+  const [iconData, setIconData] = useState<string[]>([])
+  const [imgData, setImgData] = useState('')
+
+  const webref = useRef<WebView>(null);
 
   async function getHTMLContents() {
     // progress = `html: ${JSON.stringify(htmlFile)} ${htmlFile[0].localUri}`
@@ -62,6 +98,51 @@ const GenerateLeafletMap = () => {
       getHTMLContents()
     }
   }, [htmlFile])
+
+  async function getIconUris() {
+    if (iconAssets && html != 'no html') {
+      let iconArr: string[] = [];
+      for (var i = 0; i < iconAssets.length; i++) {
+        if (iconAssets[i]) {
+          let localU = iconAssets[i].localUri;
+          if (localU) {
+            const fileContents = await FileSystem.readAsStringAsync(localU, {
+              encoding: FileSystem.EncodingType.Base64,
+            })
+            iconArr.push(`data:image/svg+xml;base64,${fileContents}`);
+          }
+        }
+      }
+      setIconData(iconArr)
+    }
+  }
+
+
+  useEffect(() => {
+    if (iconAssets && html != 'no html') {
+      getIconUris()
+    }
+  }, [iconAssets, html])
+
+  async function getImgFile() {
+    if (imgFile) {
+      if (imgFile[0]) {
+        let localU = imgFile[0].localUri;
+        if (localU) {
+          const fileContents = await FileSystem.readAsStringAsync(localU, {
+            encoding: FileSystem.EncodingType.Base64,
+          })
+          setImgData(`data:image/png;base64,${fileContents}`);
+        }
+      }
+    }
+  }
+
+  useEffect(() => {
+    if (imgFile) {
+      // getImgFile()
+    }
+  }, [imgFile])
 
   async function main() {
     // progress = `stopFile: ${JSON.stringify(stopFile)}`
@@ -105,12 +186,36 @@ const GenerateLeafletMap = () => {
                   // modify the line to have the data injected
                   lineSplit[i] = `${firstPart}${JSON.stringify(stopData)}${secondPart}`;
                   // console.log(firstPart, secondPart)
-                }
+                } 
+                // else if (lineSplit[i].includes('var imageUrl =')) {
+                //   let firstP = lineSplit[i].indexOf("'");
+                //   let firstPart = lineSplit[i].slice(0, firstP + 1)
+                //   let secondPart = "'"
+                //   // modify the line to have the data injected
+                //   lineSplit[i] = `${firstPart}${imgData}${secondPart}`;
+                //   // console.log(firstPart, secondPart)
+                // }
               }
-              htmlContent = lineSplit.join('\n').replace('■', '\n')
-              await FileSystem.writeAsStringAsync(htmlFileUri, htmlContent, { encoding: 'utf8' })
-              shouldInsertDataLocalVar = false;
-              progress = "Wrote HTML content!"
+              // progress = `${shapeData.slice(0, 10)}, ${stopData.slice(0, 10)}`
+              setHtmlContent(lineSplit.join('\n').replace('■', '\n'))
+              await updateWebView()
+              // setTimeout(function () {
+              //   var i = 0;
+              //   const max = 1000;
+              //   const imgParts = splitStringIntoParts(imgData, max);
+              //   var addPartsOfImg = setInterval(() => {
+              //     var run = `window.mapImageData${i} = \`${imgParts[i]}\``;
+              //     progress = `Adding mapImageData${i}`
+              //     if (webref.current) {
+              //       webref.current.injectJavaScript(run);
+              //     }
+              //     if (i >= max) {
+              //       clearInterval(addPartsOfImg)
+              //     }
+              //     i++;
+              //   }, 100)
+              // }, 1500)
+              progress = "Updated web view"
             }
           })
           .catch((error) => {
@@ -124,87 +229,15 @@ const GenerateLeafletMap = () => {
   }
 
   useEffect(() => {
-    if (html != 'no html' && stopFile && shapeFile) {
-      progress = "Running main"
+    // if zip downloaded + html ready to render
+    // if (hasUnZipped && html != 'no html' && iconUriArr.length != 0) {
+    // progress = `${hasUnZipped} ${html} ${htmlFile}`
+    if (html != 'no html' && iconData.length != 0 && stopFile && shapeFile) {
+      // progress = "Running main"
       main()
     }
-  }, [html, stopFile, shapeFile]);
+  }, [html, iconData, stopFile, shapeFile]);
 
-  return <ThemedText>Loading...</ThemedText>;
-}
-
-const LeafletMap = () => {
-  const webref = useRef<WebView>(null);
-  const [reRender, setReRender] = useState("");
-  // !!! Generate the require statements using scripts/generateIconFilePaths.js
-  const [iconAssets, err2] = useAssets([require('../../assets/images/svg/1.svg'),
-  require('../../assets/images/svg/2.svg'),
-  require('../../assets/images/svg/3.svg'),
-  require('../../assets/images/svg/4.svg'),
-  require('../../assets/images/svg/5.svg'),
-  require('../../assets/images/svg/6.svg'),
-  require('../../assets/images/svg/7.svg'),
-  require('../../assets/images/svg/7d.svg'),
-  require('../../assets/images/svg/a.svg'),
-  require('../../assets/images/svg/b.svg'),
-  require('../../assets/images/svg/c.svg'),
-  require('../../assets/images/svg/d.svg'),
-  require('../../assets/images/svg/e.svg'),
-  require('../../assets/images/svg/f.svg'),
-  require('../../assets/images/svg/g.svg'),
-  require('../../assets/images/svg/h.svg'),
-  require('../../assets/images/svg/j.svg'),
-  require('../../assets/images/svg/l.svg'),
-  require('../../assets/images/svg/m.svg'),
-  require('../../assets/images/svg/n.svg'),
-  require('../../assets/images/svg/q.svg'),
-  require('../../assets/images/svg/r.svg'),
-  require('../../assets/images/svg/s.svg'),
-  require('../../assets/images/svg/sf.svg'),
-  require('../../assets/images/svg/sir.svg'),
-  require('../../assets/images/svg/sr.svg'),
-  require('../../assets/images/svg/w.svg'),
-  require('../../assets/images/svg/z.svg'),
-  ]);
-  const [iconData, setIconData] = useState<string[]>([]);
-  const [html, setHtml] = useState('no html');
-
-  useEffect(() => {
-    async function getHtml() {
-      if (htmlContent != '') {
-        setHtml(htmlContent)
-      } else {
-        let content = await FileSystem.readAsStringAsync(htmlFileUri)
-        setHtml(content)
-      }
-    }
-    getHtml()
-  }, [])
-
-  async function getIconUris() {
-    if (iconAssets && html != 'no html') {
-      let iconArr: string[] = [];
-      for (var i = 0; i < iconAssets.length; i++) {
-        if (iconAssets[i]) {
-          let localU = iconAssets[i].localUri;
-          if (localU) {
-            const fileContents = await FileSystem.readAsStringAsync(localU, {
-              encoding: FileSystem.EncodingType.Base64,
-            })
-            iconArr.push(`data:image/svg+xml;base64,${fileContents}`);
-          }
-        }
-      }
-      setIconData(iconArr)
-    }
-  }
-
-
-  useEffect(() => {
-    if (iconAssets && html != 'no html') {
-      getIconUris()
-    }
-  }, [iconAssets, html])
 
   async function getLocation() {
     // progress = ("Permission granted?")
@@ -225,13 +258,25 @@ const LeafletMap = () => {
     return expoLocationData
   };
 
+  // For some reason we should use setInterval this way with async functions. I'm not sure why.
+  // useEffect(() => {
+  //   const intervalId = setInterval(getLocation, 1000);
+
+  //   // clear when component un mounts? Not sure
+  //   return () => clearInterval(intervalId);
+  // }, []);
+
   async function updateWebView() {
+    if (!(html != 'no html' && iconData)) {
+      return
+    }
     let expoLocationData = await getLocation()
     var run = '';
     // progress = (JSON.stringify(location))
     if (expoLocationData != null) {
       let coords = expoLocationData["coords"]
       // progress = (String(nearbyStops))
+      //         window.mapImageData = \`${imgData}\`
       if (isFirstRender) {
         run = `
           window.iconFileLocations = ${JSON.stringify(iconData)}
@@ -252,60 +297,26 @@ const LeafletMap = () => {
     }
   }
 
-  useEffect(() => {
-    if (html != 'no html' && iconData.length != 0) {
-      setInterval(updateWebView, 10000);
-    }
-  }, [html, iconData])
+  setInterval(updateWebView, 10000);
 
-  return <WebView originWhitelist={['*']} ref={webref} source={{ html: html }} style={{ flex: 1 }} />;
+  return <WebView originWhitelist={['*']} ref={webref} source={{ html: htmlContent }} style={{ flex: 1 }} />;
 };
 
-type ShouldInsertDataType = boolean | null;
-
-export default function HomeScreen() {
-  const [mapHeight, setMapHeight] = useState(Dimensions.get('window').height * 0.5);
+export default function ImgMapScreen() {
   const [p, setP] = useState('')
-  const [shouldInsertData, setShouldInsertData] = useState<ShouldInsertDataType>(null);
-
-  async function checkIfHTMLFileExists() {
-    const exists = await doesFileExist(htmlFileUri);
-    if (exists) {
-      shouldInsertDataLocalVar = false;
-      setShouldInsertData(false)
-    } else {
-      shouldInsertDataLocalVar = true;
-      setShouldInsertData(true)
-    }
-  }
-
-  useEffect(() => {
-    setMapHeight(Dimensions.get('window').height);
-    checkIfHTMLFileExists()
-  });
-
-  async function doesFileExist(uri: any) {
-    const result = await FileSystem.getInfoAsync(uri);
-    return result.exists && !result.isDirectory;
-  }
 
   setInterval(() => {
     setP(progress)
-    setShouldInsertData(shouldInsertDataLocalVar)
   }, 1000)
 
   return (
     <View>
-      <View style={{ height: mapHeight }}>
-        {shouldInsertData ? <GenerateLeafletMap /> : <LeafletMap />}
+      <ThemedText>Brooooooooooo</ThemedText>
+      <View style={{ height: Dimensions.get('window').height * 0.5 }}>
+        <ImgMap />
       </View>
       <ThemedText>{p}</ThemedText>
+      {/* <DraggableContainer height={draggableHeight} setHeight={setDraggableHeight}></DraggableContainer> */}
     </View>
   );
 }
-
-// const styles = StyleSheet.create({
-//   // container: {
-//   //   flex: 1
-//   // },
-// });
