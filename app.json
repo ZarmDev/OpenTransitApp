@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "TransitApp",
+    "name": "OpenTransitApp",
     "slug": "TransitAppDebug",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -14,14 +14,16 @@
       "backgroundColor": "#3d404c"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.hackclub.OpenTransitApp",
+      "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#3d404cff"
       },
-      "package": "com.ddev11.TransitAppDebug"
+      "package": "com.ddev11.OpenTransitAppDebug"
     },
     "web": {
       "bundler": "metro",
@@ -38,7 +40,8 @@
             "assets"
           ]
         }
-      ]
+      ],
+      "expo-font"
     ],
     "assetBundlePatterns": [
       "assets/**"

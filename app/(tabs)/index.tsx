@@ -5,6 +5,7 @@ import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
 import { Asset, useAssets } from 'expo-asset';
 import { ThemedText } from '@/components/ThemedText';
+import * as tH from '../tH'
 
 // var bundleC = bundle.replace(/\δ/g, '$').replace(/\⒓/g, '{').replace(/\⇎/g, '`')
 
@@ -29,9 +30,7 @@ var shapeData: string[] = [];
 var stopData: string[] = [];
 var progress = ''
 var isFirstRender = true;
-var shouldInsertDataLocalVar: boolean | null = null;
 var htmlContent = ''
-var iconData = ''
 const htmlFileUri = FileSystem.cacheDirectory + 'leaflet_map.html'
 
 // thanks AI
@@ -41,7 +40,7 @@ const htmlFileUri = FileSystem.cacheDirectory + 'leaflet_map.html'
 //   return Math.sqrt(latDiff * latDiff + lonDiff * lonDiff);
 // }
 
-const GenerateLeafletMap = () => {
+function GenerateLeafletMap() {
   const [htmlFile, err] = useAssets(require('../../assets/leaflet_map.html'))
   const [html, setHtml] = useState("no html");
   const [stopFile, err3] = useAssets(require('../../assets/trains/google_transit/stops2.txt'))
@@ -109,7 +108,6 @@ const GenerateLeafletMap = () => {
               }
               htmlContent = lineSplit.join('\n').replace('■', '\n')
               await FileSystem.writeAsStringAsync(htmlFileUri, htmlContent, { encoding: 'utf8' })
-              shouldInsertDataLocalVar = false;
               progress = "Wrote HTML content!"
             }
           })
@@ -133,7 +131,7 @@ const GenerateLeafletMap = () => {
   return <ThemedText>Loading...</ThemedText>;
 }
 
-const LeafletMap = () => {
+function LeafletMap(props: any) {
   const webref = useRef<WebView>(null);
   const [reRender, setReRender] = useState("");
   // !!! Generate the require statements using scripts/generateIconFilePaths.js
@@ -167,22 +165,9 @@ const LeafletMap = () => {
   require('../../assets/images/svg/z.svg'),
   ]);
   const [iconData, setIconData] = useState<string[]>([]);
-  const [html, setHtml] = useState('no html');
-
-  useEffect(() => {
-    async function getHtml() {
-      if (htmlContent != '') {
-        setHtml(htmlContent)
-      } else {
-        let content = await FileSystem.readAsStringAsync(htmlFileUri)
-        setHtml(content)
-      }
-    }
-    getHtml()
-  }, [])
 
   async function getIconUris() {
-    if (iconAssets && html != 'no html') {
+    if (iconAssets) {
       let iconArr: string[] = [];
       for (var i = 0; i < iconAssets.length; i++) {
         if (iconAssets[i]) {
@@ -201,10 +186,13 @@ const LeafletMap = () => {
 
 
   useEffect(() => {
-    if (iconAssets && html != 'no html') {
+    if (iconAssets) {
+      progress = "Got the assets!"
       getIconUris()
+    } else {
+      progress = String(err2)
     }
-  }, [iconAssets, html])
+  }, [iconAssets])
 
   async function getLocation() {
     // progress = ("Permission granted?")
@@ -212,27 +200,23 @@ const LeafletMap = () => {
     // progress = (status)
     if (status !== 'granted') {
       // progress = ('Permission to access location was denied');
-      return;
+      // Use example location then...
+      return { coords: { latitude: 40.71775244918452, longitude: -73.9990371376651 } }
     }
 
     let expoLocationData: LocationObject = await Location.getCurrentPositionAsync({});
-    // progress = (JSON.stringify(expoLocationData))
-    // if (expoLocationData != null) {
-    //   let coords = expoLocationData["coords"]
-    //   let latlng = [coords["latitude"], coords["longitude"]]
-    // }
-    // setLocation(expoLocationData)
     return expoLocationData
   };
 
   async function updateWebView() {
     let expoLocationData = await getLocation()
     var run = '';
-    // progress = (JSON.stringify(location))
+    // progress = "No location found..."
+    // progress = (JSON.stringify(expoLocationData))
     if (expoLocationData != null) {
       let coords = expoLocationData["coords"]
-      // progress = (String(nearbyStops))
       if (isFirstRender) {
+        progress = "Done with first render"
         run = `
           window.iconFileLocations = ${JSON.stringify(iconData)}
           window.userLocation = [${coords["latitude"]}, ${coords["longitude"]}];
@@ -240,25 +224,67 @@ const LeafletMap = () => {
         `;
         isFirstRender = false;
       } else {
+        progress = "Not first render"
         run = `
           window.userLocation = [${coords["latitude"]}, ${coords["longitude"]}];
           true;
         `;
       }
-      setReRender("z")
+      // setReRender("z")
       if (webref.current) {
         webref.current.injectJavaScript(run);
       }
+      setReRender('z')
     }
   }
 
-  useEffect(() => {
-    if (html != 'no html' && iconData.length != 0) {
-      setInterval(updateWebView, 10000);
-    }
-  }, [html, iconData])
+  // async function listDirectoryContents(targetPath: any) {
+  //   try {
+  //     const contents = await FileSystem.readDirectoryAsync(targetPath);
+  //     return contents
+  //     // console.log('Directory contents:', contents);
+  //   } catch (error) {
+  //     // console.error('Error reading directory:', error);
+  //   }
+  // }
 
-  return <WebView originWhitelist={['*']} ref={webref} source={{ html: html }} style={{ flex: 1 }} />;
+  // async function test() {
+  //   let c = await listDirectoryContents(FileSystem.cacheDirectory)
+  //   if (c) {
+  //     progress = JSON.stringify(c) 
+  //   }
+  // }
+  useEffect(() => {
+    // progress = "Wait it worked?"
+    if (iconData.length != 0 && isFirstRender) {
+      progress = "Running updateWebView"
+      updateWebView()
+      setInterval(updateWebView, 10000)
+      // test()
+    }
+  }, [iconData])
+
+  return <WebView
+    onMessage={async (event) => {
+      alert(event.nativeEvent.data);
+      const eventData = event.nativeEvent.data.slice(1,)
+      const eventType = event.nativeEvent.data[0]
+      progress = eventData
+      // Arrivals (TODO)
+      if (eventType === 'A') {
+        const targetStopID = eventData.split('|')[0]
+        const direction = ""
+        const date = Date.now()
+        const trainLine = eventData.split('|')[1]
+        const realtime = await tH.getTrainArrivals(trainLine, targetStopID, date, direction);
+        progress = JSON.stringify(realtime);
+        props.arrivalCallback(realtime)
+      }
+    }}
+    originWhitelist={['*']}
+    ref={webref}
+    source={{ html: htmlContent }}
+    style={{ flex: 1 }} />;
 };
 
 type ShouldInsertDataType = boolean | null;
@@ -267,39 +293,47 @@ export default function HomeScreen() {
   const [mapHeight, setMapHeight] = useState(Dimensions.get('window').height * 0.5);
   const [p, setP] = useState('')
   const [shouldInsertData, setShouldInsertData] = useState<ShouldInsertDataType>(null);
+  const [arrivals, setArrivals] = useState([]);
 
   async function checkIfHTMLFileExists() {
     const exists = await doesFileExist(htmlFileUri);
     if (exists) {
-      shouldInsertDataLocalVar = false;
       setShouldInsertData(false)
+      htmlContent = await FileSystem.readAsStringAsync(htmlFileUri, { encoding: 'utf8' })
     } else {
-      shouldInsertDataLocalVar = true;
       setShouldInsertData(true)
     }
   }
 
   useEffect(() => {
-    setMapHeight(Dimensions.get('window').height);
+    setMapHeight(Dimensions.get('window').height * 0.5);
     checkIfHTMLFileExists()
-  });
+  }, []);
 
   async function doesFileExist(uri: any) {
     const result = await FileSystem.getInfoAsync(uri);
     return result.exists && !result.isDirectory;
   }
 
+  var startupHelper = setInterval(() => {
+    if (htmlContent != '') {
+      setShouldInsertData(false)
+      clearInterval(startupHelper)
+    }
+  }, 100)
+
   setInterval(() => {
     setP(progress)
-    setShouldInsertData(shouldInsertDataLocalVar)
-  }, 1000)
+  }, 500)
 
   return (
     <View>
       <View style={{ height: mapHeight }}>
-        {shouldInsertData ? <GenerateLeafletMap /> : <LeafletMap />}
+        {shouldInsertData ? <GenerateLeafletMap /> : <LeafletMap arrivalCallback={(c: any) => {setArrivals(c)}} />}
       </View>
-      <ThemedText>{p}</ThemedText>
+      <ThemedText>Progress: {p}</ThemedText>
+      <ThemedText>Arrivals:</ThemedText>
+      <ThemedText>{JSON.stringify(arrivals)}</ThemedText>
     </View>
   );
 }
