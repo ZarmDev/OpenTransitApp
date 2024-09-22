@@ -79,6 +79,7 @@ The app must be submitted by August 31st, 2024 to be considered for the grant.
 
 # NOTE FOR MYSELF
 **Instaling native modules require a new native build**
+npx eas build -p ios
 https://stackoverflow.com/questions/41871519/leaflet-js-quickest-path-with-custom-points
 https://stackoverflow.com/questions/43167417/calculate-distance-between-two-points-in-leaflet
 # Performance optimizations (part 1)
