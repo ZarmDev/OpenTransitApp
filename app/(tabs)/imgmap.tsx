@@ -1,7 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import MapLibreGL from '@maplibre/maplibre-react-native';
-import { IconRotationAlignmentEnum } from '@maplibre/maplibre-react-native/javascript/utils/MaplibreStyles';
 
 MapLibreGL.setAccessToken(null);
 MapLibreGL.setConnected(true);

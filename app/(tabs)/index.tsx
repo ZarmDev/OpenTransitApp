@@ -277,6 +277,7 @@ function LeafletMap(props: any) {
         const date = Date.now()
         const trainLine = eventData.split('|')[1]
         const realtime = await tH.getTrainArrivals(trainLine, targetStopID, date, direction);
+        progress = JSON.stringify(realtime);
         props.arrivalCallback(realtime)
       }
     }}
